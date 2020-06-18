@@ -8636,11 +8636,6 @@ vue-eslint-parser@^7.0.0:
     esquery "^1.0.1"
     lodash "^4.17.15"
 
-vue-google-adsense@^1.8.1:
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/vue-google-adsense/-/vue-google-adsense-1.8.1.tgz#e0f2c8c805a7ecfe8a3621b348256cc84bb86b97"
-  integrity sha512-m3T6XHUjZb/dz6BU0RmNouI1XtyqRDpFYH+RXGH8yQa5vRrEz0doEE09Ped3aTbLFWC+uBTOM4yiCjdX6FXoUQ==
-
 vue-hot-reload-api@^2.3.0:
   version "2.3.4"
   resolved "https://registry.yarnpkg.com/vue-hot-reload-api/-/vue-hot-reload-api-2.3.4.tgz#532955cc1eb208a3d990b3a9f9a70574657e08f2"
@@ -8663,11 +8658,6 @@ vue-recaptcha-v3@^1.9.0:
   integrity sha512-WQIlhcOcETk3SYbEC88podUSq1J7UjmHpKgJhSy0Xm3DAjTIPjl19g9kn5KRdyTxNLiS/eR5C6H3Jk3c7b9baA==
   dependencies:
     recaptcha-v3 "^1.8.0"
-
-vue-script2@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/vue-script2/-/vue-script2-2.1.0.tgz#8e480dc6052c8cdf2aa0ec112efc80f31ddc3522"
-  integrity sha512-EDUOjQBFvhkJXwmWuUR9ijlF7/4JtmvjXSKaHSa/LNTMy9ltjgKgYB68aqlxgq8ORdSxowd5eo24P1syjZJnBA==
 
 vue-style-loader@^4.1.0, vue-style-loader@^4.1.2:
   version "4.1.2"
