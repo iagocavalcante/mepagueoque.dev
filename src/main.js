@@ -2,7 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import vuetify from './plugins/vuetify';
 import firebase from 'firebase';
-
+import Ads from 'vue-google-adsense';
 
 var firebaseConfig = {
   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
@@ -18,7 +18,9 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-
+Vue.use(require('vue-script2'))
+ 
+Vue.use(Ads.Adsense)
 Vue.config.productionTip = false
 
 import { VueReCaptcha } from 'vue-recaptcha-v3'

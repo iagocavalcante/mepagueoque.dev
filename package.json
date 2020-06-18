@@ -14,7 +14,9 @@
     "firebase": "^7.15.1",
     "twilio": "^3.46.0",
     "vue": "^2.6.11",
+    "vue-google-adsense": "^1.8.1",
     "vue-recaptcha-v3": "^1.9.0",
+    "vue-script2": "^2.1.0",
     "vuetify": "^2.2.11"
   },
   "devDependencies": {
