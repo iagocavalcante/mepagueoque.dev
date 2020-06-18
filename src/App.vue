@@ -3,10 +3,6 @@
     <v-content class="my-content">
       <Index />
     </v-content>
-    <Adsense
-      data-ad-client="ca-pub-3185487232413442"
-      data-ad-slot="1234567890">
-    </Adsense>
   </v-app>
 </template>
 
