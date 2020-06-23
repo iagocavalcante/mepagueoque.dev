@@ -39,14 +39,7 @@
           v-model="message.value"
           clearable
         ></v-text-field>
-        <v-text-field
-          color="green"
-          label="Para qual email você deseja enviar?"
-          class="ma-1"
-          outlined
-          v-model="message.email"
-          clearable
-        ></v-text-field>
+        <BtnToggle />
         <v-btn :loading="loading" x-large color="success" dark @click="recaptcha">Cobrar!</v-btn>
       </v-col>
     </v-row>
@@ -69,14 +62,18 @@
 
 <script>
 import axios from 'axios'
+import BtnToggle from './BtnToggle'
 export default {
   name: 'Index',
+
+  components: {
+    BtnToggle
+  },
 
   data: () => ({
     message: {
       text: 'Nossa dívida está completando 1 mês! Você está convidado a pagar.',
       value: '100.00',
-      email: 'teste@gmail.com',
       token: ''
     },
     dialog: false,
