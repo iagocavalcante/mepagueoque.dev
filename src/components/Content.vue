@@ -26,7 +26,7 @@
           O total de famílias que declararam não ter condições de pagar suas contas ou dívidas em atraso e que, portanto, permaneceriam inadimplentes passou de 9,7% em fevereiro para 10,2% em março. 
           Os indicadores também registraram aumento no comparativo anual.
         </p>
-        <a target="_blank" href="https://exame.com/economia/endividamento-no-brasil-bate-recorde-e-deve-aumentar-devido-ao-coronavirus/">
+        <a style="text-decoration: none;" target="_blank" href="https://exame.com/economia/endividamento-no-brasil-bate-recorde-e-deve-aumentar-devido-ao-coronavirus/">
           <v-chip
             class="ma-2"
             color="green darken-1"
