@@ -3,7 +3,6 @@ import App from './App.vue'
 import vuetify from './plugins/vuetify';
 import firebase from 'firebase';
 
-
 var firebaseConfig = {
   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
   authDomain:  process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
@@ -17,7 +16,6 @@ var firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
-
 
 Vue.config.productionTip = false
 

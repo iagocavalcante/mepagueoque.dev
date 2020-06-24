@@ -61,7 +61,12 @@ functions:
   sendEmail:
     handler: handler.sendEmail
     environment:
-      
+      FROM_EMAIL: 
+      RECAPTCHA_KEY: 
+      GIPHY_API_KEY: 
+      GIPHY_URL: 
+      MAILGUN_API_KEY: 
+      MAILGUN_DOMAIN: 
     events:
       - http:
           path: enviar-cobranca
