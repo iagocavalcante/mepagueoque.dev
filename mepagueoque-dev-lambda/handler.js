@@ -74,7 +74,7 @@ module.exports.sendEmail = async (event, context, callback) => {
 
       var data = {
         from: process.env.FROM_EMAIL,
-        to: bodyParams.email,
+        to: bodyParams.destination,
         subject: 'Olá, Me pague o que dev.',
         html: content
       }

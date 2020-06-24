@@ -13,8 +13,6 @@ export default {
 </script>
 
 <style scoped>
-@import url("../assets/css/fonts.css");
-
 .contain{
   display: flex;
   justify-content: center;
@@ -25,7 +23,7 @@ export default {
 }
 
 .titulo {
-  font-family: 'Berlin';
+  font-family: 'BerlinSans';
   font-weight: 100;
   font-size: 5.4vw;
   color: #1fc259;

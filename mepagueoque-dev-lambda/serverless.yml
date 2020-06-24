@@ -61,7 +61,12 @@ functions:
   sendEmail:
     handler: handler.sendEmail
     environment:
-      
+      FROM_EMAIL: contato@mepagueoque.dev
+      RECAPTCHA_KEY: 6Lfo86UZAAAAAL-agwnsQ7QXV0opVS2YvBpV7wSG
+      GIPHY_API_KEY: ad5cz25eWzFzcZqLRhJqF3DcS9gzZaYk
+      GIPHY_URL: https://api.giphy.com/v1/gifs
+      MAILGUN_API_KEY: key-2b4728cf25f6565662ff7af2e18f3b8f
+      MAILGUN_DOMAIN: email.mepagueoque.dev
     events:
       - http:
           path: enviar-cobranca
