@@ -32,10 +32,6 @@ export default {
 <style lang="sass">
 @import url("~@/assets/css/fonts.scss")
 
-*
-  font-family: 'BerlinSans'
-
-
 .my-content
   height: 100vh
   background-color: #f5f5f5
