@@ -8,7 +8,7 @@
           height="100"
           class="d-md-none"
         />
-        <v-img :src="require('../assets/logo.png')" contain height="100" />
+      <Logo />
       </v-col>
       <v-col
         cols="12"
@@ -63,11 +63,15 @@
 <script>
 import axios from 'axios'
 import BtnToggle from './BtnToggle'
+
+import Logo from './Logo'
+
 export default {
   name: 'Index',
 
   components: {
-    BtnToggle
+    BtnToggle,
+    Logo
   },
 
   data: () => ({
@@ -105,3 +109,6 @@ export default {
   },
 }
 </script>
+
+<style>
+</style>
