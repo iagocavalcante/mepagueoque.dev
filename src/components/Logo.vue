@@ -1,8 +1,8 @@
 <template>
-  <div  class="contain mt-4 mb-4">
+  <div class="contain mt-5 mb-5">
     <div class="logo">
-      <h1 class="titulo">mepagueoque.dev</h1>
-      <h6 class="sub-titulo text--secondary">(um jeito sutil de cobrar os(as) caloteiros(as))</h6>
+      <h1 class="titulo mb-0">mepagueoque.dev</h1>
+      <h6 class="sub-titulo mt-1 text--secondary">(um jeito sutil de cobrar os(as) caloteiros(as))</h6>
     </div>
   </div>
 </template>
@@ -16,10 +16,13 @@ export default {
 .contain{
   display: flex;
   justify-content: center;
+  height: 12vw;
 }
 
 .logo{
   display: block;
+  margin: auto;
+  top: 0; left: 0; bottom: 0; right: 0;
 }
 
 .titulo {
@@ -35,6 +38,7 @@ export default {
   font-family: 'Antaro';
   font-size: 1.4vw;
   color: #2d2b33;
+  line-height: 1;
   text-align: right;
 }
 </style>

@@ -6,7 +6,7 @@
           :src="require('../assets/money_transfer_.svg')"
           contain
           height="100"
-          class="d-md-none"
+          class="d-md-none d-lg-none"
         />
         <Logo />
       </v-col>
