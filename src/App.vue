@@ -3,11 +3,7 @@
     <v-content class="my-content">
       <Index />
     </v-content>
-<<<<<<< HEAD
-    <v-content class="mt-5">
-=======
     <v-content class="mt-5 pt-5">
->>>>>>> bdcf2f2350992a3f61dfe55c377e118bf6a7fed4
       <Content />
     </v-content>
     <Footer />
