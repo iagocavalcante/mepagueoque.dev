@@ -4,7 +4,7 @@
       class="text-center"
       cols="12"
     >
-      <strong>{{authorsFormated}} </strong> &copy; MePagueOQue.Dev - {{ new Date().getFullYear() }}
+      <strong>{{authorsFormated}} </strong> &copy; MePagueOQue.Dev - {{ nowDate }}
       <p><strong>Versão - {{version}} </strong></p>
     </v-col>
   </v-footer>
@@ -19,7 +19,8 @@ export default {
       'Iago Cavalcante',
       'Bianca Silva',
       'Thayana Mamore'
-    ]
+    ],
+    nowDate: new Date().getFullYear()
   }),
   computed: {
     authorsFormated () {
