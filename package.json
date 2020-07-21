@@ -19,6 +19,7 @@
     "vuetify": "^2.2.11"
   },
   "devDependencies": {
+    "@babel/core": "^7.10.5",
     "@mdi/font": "^5.3.45",
     "@testing-library/jest-dom": "^5.11.1",
     "@testing-library/vue": "^5.0.4",

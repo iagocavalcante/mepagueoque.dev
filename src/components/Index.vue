@@ -122,7 +122,6 @@ export default {
     },
     inputType (type) {
       this.type = type
-      console.log(this.type)
     },
     async sendWhatsapp (token) {
       this.message.token = token
