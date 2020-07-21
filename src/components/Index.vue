@@ -19,7 +19,7 @@
         xl="6"
         class="d-none d-md-inline"
       >
-        <v-img :src="require('../assets/money_transfer_.svg')" contain height="400" />
+        <v-img :src="moneyTransfer" contain height="400" />
       </v-col>
       <v-col cols="12" xs="12" sm="12" md="6" lg="6" xl="6">
         <v-form ref="form"
@@ -33,6 +33,7 @@
             outlined
             v-model="message.text"
             clearable
+            data-testid="mensagem"
             required
             :rules="rules.text"
           ></v-textarea>
@@ -42,6 +43,7 @@
             label="Qual o valor do golpe?"
             class="ma-1"
             outlined
+            data-testid="valor"
             v-model="message.value"
             clearable
             required
@@ -73,6 +75,7 @@
 import axios from 'axios'
 import Logo from './Logo'
 import ToggleInputs from './ToggleInputs'
+import moneyTransfer from '@/assets/money_transfer_.svg'
 
 export default {
   name: 'Index',
@@ -99,7 +102,8 @@ export default {
     type: 'email',
     dialog: false,
     responseMessage: '',
-    loading: false
+    loading: false,
+    moneyTransfer
   }),
   methods: {
     async sendEmail (token) {

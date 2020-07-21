@@ -46,14 +46,19 @@
         xl="4"
         class="mt-md-5 mt-lg-5 mt-xl-5 d-none d-md-inline"
       >
-        <v-img :src="require('../assets/wallet.svg')" contain height="400" />
+        <v-img alt="carteira" :src="wallet" contain height="400" />
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
+import wallet from '@/assets/wallet.svg'
+
 export default {
   name: 'Index',
+  data: () => ({
+    wallet
+  })
 }
 </script>
