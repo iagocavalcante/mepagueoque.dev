@@ -137,9 +137,7 @@ export default {
         }
       );
       let content = `${this.message.text} \nValor: ${this.message.value} \n${fetchGif.data.title}`
-      let target = `https://api.whatsapp.com/send?`;
-      target += `phone=${encodeURIComponent(this.message.destination)}&`;
-      target += `text=${encodeURIComponent(content)}`
+      let target = `https://wa.me/?text=${content}`;
       window.open(target, "_blank");  
       this.loading = false
     },
