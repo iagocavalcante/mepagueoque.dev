@@ -25,9 +25,9 @@ describe('Footer Component', () => {
     const { getByText } = renderWithVuetify(Footer)
     expect(getByText('Iago Cavalcante, Bianca Silva, Thayana Mamore')).toBeInTheDocument()
   })
-  
+
   it('should render application name in footer text', () => {
     const { getByText } = renderWithVuetify(Footer)
-    expect(getByText('© MePagueOQue.Dev - 2020')).toBeInTheDocument()
+    expect(getByText('© MePagueOQue.Dev - 2022')).toBeInTheDocument()
   })
 })
