@@ -1,35 +1,69 @@
-/* eslint-disable no-undef */
-import '@testing-library/jest-dom'
-import Vue from 'vue'
-import { render } from '@testing-library/vue'
-import Vuetify from 'vuetify'
+import { describe, it, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import Footer from './Footer.vue'
 
-import Footer from '@/components/Footer'
-
-Vue.use(Vuetify)
-
-const renderWithVuetify = (component, options, callback) => {
-  return render(
-    component,
-    {
-      // for Vuetify components that use the $vuetify instance property
-      vuetify: new Vuetify(),
-      ...options,
-    },
-    callback,
-  )
-}
+// Create Vuetify instance for testing
+const vuetify = createVuetify({
+  components,
+  directives
+})
 
 describe('Footer Component', () => {
-  it('should render authors footer text', () => {
-    const { getByText } = renderWithVuetify(Footer)
-    expect(getByText('Iago Cavalcante, Bianca Silva, Thayana Mamore')).toBeInTheDocument()
+  it('should render all authors names', () => {
+    const wrapper = mount(Footer, {
+      global: {
+        plugins: [vuetify]
+      }
+    })
+
+    expect(wrapper.text()).toContain('Iago Cavalcante')
+    expect(wrapper.text()).toContain('Bianca Silva')
+    expect(wrapper.text()).toContain('Thayana Mamore')
   })
 
-  const currentYear = new Date().getFullYear()
+  it('should render copyright with current year', () => {
+    const wrapper = mount(Footer, {
+      global: {
+        plugins: [vuetify]
+      }
+    })
 
-  it('should render application name in footer text', () => {
-    const { getByText } = renderWithVuetify(Footer)
-    expect(getByText(`© MePagueOQue.Dev - ${currentYear}`)).toBeInTheDocument()
+    const currentYear = new Date().getFullYear()
+    expect(wrapper.text()).toContain(`Copyright © ${currentYear}`)
+    expect(wrapper.text()).toContain('MePagueOQue.Dev')
+  })
+
+  it('should render version number', () => {
+    const wrapper = mount(Footer, {
+      global: {
+        plugins: [vuetify]
+      }
+    })
+
+    expect(wrapper.text()).toMatch(/Versão \d+\.\d+\.\d+/)
+  })
+
+  it('should render disclaimer text', () => {
+    const wrapper = mount(Footer, {
+      global: {
+        plugins: [vuetify]
+      }
+    })
+
+    expect(wrapper.text()).toContain('Este site é uma ferramenta humorística')
+  })
+
+  it('should format authors correctly', () => {
+    const wrapper = mount(Footer, {
+      global: {
+        plugins: [vuetify]
+      }
+    })
+
+    const authorsText = wrapper.find('.authors').text()
+    expect(authorsText).toContain('Iago Cavalcante, Bianca Silva, Thayana Mamore')
   })
 })

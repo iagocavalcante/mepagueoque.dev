@@ -1,0 +1,236 @@
+/**
+ * Design System Tokens
+ * Modern design system with semantic tokens for colors, typography, spacing, and effects
+ * Based on WCAG AA accessibility standards
+ */
+
+// ============================================================================
+// COLOR PALETTE
+// ============================================================================
+
+// Primary Colors - Brand Green
+$color-primary-50: #e8f5e9;
+$color-primary-100: #c8e6c9;
+$color-primary-200: #a5d6a7;
+$color-primary-300: #81c784;
+$color-primary-400: #66bb6a;
+$color-primary-500: #4caf50; // Main brand color
+$color-primary-600: #43a047;
+$color-primary-700: #388e3c;
+$color-primary-800: #2e7d32;
+$color-primary-900: #1b5e20;
+
+// Success - Lighter Green
+$color-success-light: #1fc259;
+$color-success-main: #4caf50;
+$color-success-dark: #388e3c;
+
+// Neutral Colors - Grays
+$color-neutral-0: #ffffff;
+$color-neutral-50: #fafafa;
+$color-neutral-100: #f5f5f5;
+$color-neutral-200: #eeeeee;
+$color-neutral-300: #e0e0e0;
+$color-neutral-400: #bdbdbd;
+$color-neutral-500: #9e9e9e;
+$color-neutral-600: #757575;
+$color-neutral-700: #616161;
+$color-neutral-800: #424242;
+$color-neutral-900: #2d2b33;
+$color-neutral-950: #212121;
+
+// Semantic Colors
+$color-error: #d32f2f;
+$color-error-light: #ef5350;
+$color-error-dark: #c62828;
+
+$color-warning: #f57c00;
+$color-warning-light: #ff9800;
+$color-warning-dark: #e65100;
+
+$color-info: #0288d1;
+$color-info-light: #03a9f4;
+$color-info-dark: #01579b;
+
+// Background Colors
+$color-background-primary: #ffffff;
+$color-background-secondary: #f5f5f5;
+$color-background-elevated: #ffffff;
+$color-background-gradient-start: #f5f5f5;
+$color-background-gradient-end: #e3e1de;
+
+// Text Colors
+$color-text-primary: #2d2b33;
+$color-text-secondary: #616161;
+$color-text-disabled: #9e9e9e;
+$color-text-hint: #bdbdbd;
+$color-text-on-primary: #ffffff;
+
+// Border Colors
+$color-border-light: #e0e0e0;
+$color-border-medium: #bdbdbd;
+$color-border-dark: #757575;
+
+// ============================================================================
+// TYPOGRAPHY
+// ============================================================================
+
+// Font Families
+$font-family-primary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+$font-family-logo: 'BerlinSans', sans-serif;
+$font-family-subtitle: 'Antaro', sans-serif;
+
+// Font Sizes (Fluid Typography using clamp)
+// Mobile-first approach with responsive scaling
+$font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem); // 12-14px
+$font-size-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem); // 14-16px
+$font-size-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem); // 16-18px
+$font-size-md: clamp(1.125rem, 1rem + 0.625vw, 1.5rem); // 18-24px
+$font-size-lg: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem); // 24-36px
+$font-size-xl: clamp(2rem, 1.5rem + 2.5vw, 3.5rem); // 32-56px
+$font-size-2xl: clamp(2.5rem, 2rem + 2.5vw, 4rem); // 40-64px
+$font-size-3xl: clamp(3rem, 2rem + 5vw, 6rem); // 48-96px
+
+// Logo Typography (Responsive)
+$font-size-logo-title: clamp(2rem, 3vw + 1rem, 5.4vw); // Fluid logo size
+$font-size-logo-subtitle: clamp(0.875rem, 0.8rem + 0.6vw, 1.4vw); // Fluid subtitle
+
+// Font Weights
+$font-weight-thin: 100;
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-black: 900;
+
+// Line Heights
+$line-height-tight: 1;
+$line-height-snug: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+$line-height-loose: 2;
+
+// Letter Spacing
+$letter-spacing-tight: -0.02em;
+$letter-spacing-normal: 0;
+$letter-spacing-wide: 0.02em;
+$letter-spacing-wider: 0.05em;
+
+// ============================================================================
+// SPACING SYSTEM (8px base)
+// ============================================================================
+
+$spacing-0: 0;
+$spacing-1: 0.25rem; // 4px
+$spacing-2: 0.5rem; // 8px
+$spacing-3: 0.75rem; // 12px
+$spacing-4: 1rem; // 16px
+$spacing-5: 1.25rem; // 20px
+$spacing-6: 1.5rem; // 24px
+$spacing-7: 1.75rem; // 28px
+$spacing-8: 2rem; // 32px
+$spacing-10: 2.5rem; // 40px
+$spacing-12: 3rem; // 48px
+$spacing-16: 4rem; // 64px
+$spacing-20: 5rem; // 80px
+$spacing-24: 6rem; // 96px
+$spacing-32: 8rem; // 128px
+
+// ============================================================================
+// BORDER RADIUS
+// ============================================================================
+
+$border-radius-none: 0;
+$border-radius-sm: 0.25rem; // 4px
+$border-radius-base: 0.5rem; // 8px
+$border-radius-md: 0.75rem; // 12px
+$border-radius-lg: 1rem; // 16px
+$border-radius-xl: 1.5rem; // 24px
+$border-radius-2xl: 2rem; // 32px
+$border-radius-full: 9999px;
+
+// ============================================================================
+// SHADOWS (Material Design Inspired)
+// ============================================================================
+
+$shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+$shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-md: 0 6px 12px -2px rgba(0, 0, 0, 0.12), 0 3px 7px -3px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.14), 0 4px 8px -2px rgba(0, 0, 0, 0.08);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.16), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+// Elevation Shadows (Material Design)
+$elevation-0: none;
+$elevation-1: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+$elevation-2: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+$elevation-3: 0 3px 3px -2px rgba(0, 0, 0, 0.2), 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12);
+$elevation-4: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12);
+
+// ============================================================================
+// TRANSITIONS & ANIMATIONS
+// ============================================================================
+
+$transition-duration-fast: 150ms;
+$transition-duration-base: 200ms;
+$transition-duration-slow: 300ms;
+$transition-duration-slower: 500ms;
+
+$transition-timing-ease: ease;
+$transition-timing-ease-in: ease-in;
+$transition-timing-ease-out: ease-out;
+$transition-timing-ease-in-out: ease-in-out;
+
+// ============================================================================
+// Z-INDEX LAYERS
+// ============================================================================
+
+$z-index-base: 1;
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// ============================================================================
+// BREAKPOINTS
+// ============================================================================
+
+$breakpoint-xs: 0;
+$breakpoint-sm: 600px;
+$breakpoint-md: 960px;
+$breakpoint-lg: 1264px;
+$breakpoint-xl: 1904px;
+
+// ============================================================================
+// COMPONENT SPECIFIC TOKENS
+// ============================================================================
+
+// Buttons
+$button-height-small: 32px;
+$button-height-default: 40px;
+$button-height-large: 48px;
+$button-height-x-large: 56px;
+
+$button-padding-small: $spacing-2 $spacing-4;
+$button-padding-default: $spacing-3 $spacing-6;
+$button-padding-large: $spacing-4 $spacing-8;
+$button-padding-x-large: $spacing-5 $spacing-10;
+
+// Forms
+$input-height-default: 56px;
+$input-padding: $spacing-4;
+$input-border-radius: $border-radius-base;
+$input-border-width: 1px;
+
+// Cards
+$card-padding: $spacing-6;
+$card-border-radius: $border-radius-lg;
+
+// Footer
+$footer-padding: $spacing-8 $spacing-6;
+$footer-background: $color-neutral-50;

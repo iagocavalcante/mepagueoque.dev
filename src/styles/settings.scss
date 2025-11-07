@@ -1,0 +1,11 @@
+/**
+ * Vuetify SCSS Variables Override
+ * Import this file in vite.config.js for Vuetify customization
+ */
+
+@use './design-tokens' as *;
+
+// Override Vuetify variables
+$body-font-family: $font-family-primary;
+$border-radius-root: $border-radius-base;
+$btn-border-radius: $border-radius-base;
