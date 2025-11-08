@@ -270,6 +270,15 @@ export default {
     const turnstileToken = ref('')
     const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
 
+    // Debug: Log the site key being used (safe to show first/last few chars)
+    if (turnstileSiteKey) {
+      const preview = turnstileSiteKey.slice(0, 12) + '...' + turnstileSiteKey.slice(-6)
+      console.log('🔑 Turnstile Site Key loaded:', preview)
+      console.log('🔑 Full length:', turnstileSiteKey.length)
+    } else {
+      console.error('❌ VITE_TURNSTILE_SITE_KEY is not set!')
+    }
+
     const message = ref({
       text: 'Nossa dívida está completando 1 mês! Você está convidado a pagar.',
       value: '100.00',
