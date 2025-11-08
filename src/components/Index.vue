@@ -171,6 +171,18 @@
                 </v-text-field>
               </v-expand-transition>
 
+              <!-- Turnstile Widget -->
+              <div class="mb-4 d-flex justify-center">
+                <VueTurnstile
+                  :site-key="turnstileSiteKey"
+                  :model-value="turnstileToken"
+                  @update:model-value="onTurnstileUpdate"
+                  @error="onTurnstileError"
+                  @expired="onTurnstileExpired"
+                  @unsupported="onTurnstileUnsupported"
+                />
+              </div>
+
               <!-- Submit Button -->
               <v-btn
                 type="submit"
@@ -198,7 +210,7 @@
     <!-- Response Dialog -->
     <v-dialog
       v-model="dialog"
-      max-width="400"
+      max-width="450"
       persistent
     >
       <v-card rounded="xl">
@@ -206,7 +218,7 @@
           Me pague o que dev!
         </v-card-title>
 
-        <v-card-text class="text-body-1 py-4">
+        <v-card-text class="text-body-1 py-4" style="white-space: pre-line;">
           {{ responseMessage }}
         </v-card-text>
 
@@ -217,7 +229,7 @@
             variant="elevated"
             @click="closeDialog"
           >
-            Ok
+            Entendido
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -226,8 +238,8 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
-import { useReCaptcha } from 'vue-recaptcha-v3'
+import { ref, watch } from 'vue'
+import VueTurnstile from 'vue-turnstile'
 import axios from 'axios'
 import Logo from './Logo.vue'
 import moneyTransfer from '@/assets/money_transfer_.svg'
@@ -236,7 +248,8 @@ export default {
   name: 'Index',
 
   components: {
-    Logo
+    Logo,
+    VueTurnstile
   },
 
   setup() {
@@ -247,12 +260,19 @@ export default {
     const dialog = ref(false)
     const responseMessage = ref('')
     const selectedShipmentType = ref('email')
+    const turnstileToken = ref('')
+    const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
 
     const message = ref({
       text: 'Nossa dívida está completando 1 mês! Você está convidado a pagar.',
       value: '100.00',
       token: '',
       destination: ''
+    })
+
+    // Watch for shipment type changes and clear destination
+    watch(selectedShipmentType, () => {
+      message.value.destination = ''
     })
 
     // Validation Rules
@@ -276,9 +296,6 @@ export default {
       ]
     }
 
-    // reCAPTCHA
-    const { executeRecaptcha, recaptchaLoaded } = useReCaptcha()
-
     // Methods
     const sendEmail = async (token) => {
       message.value.token = token
@@ -289,10 +306,33 @@ export default {
           import.meta.env.VITE_LAMBDA_HOST,
           message.value
         )
-        responseMessage.value = result.data
+
+        // Handle response - can be a string or object
+        if (typeof result.data === 'string') {
+          responseMessage.value = result.data
+        } else if (result.data?.message) {
+          responseMessage.value = result.data.message
+        } else {
+          responseMessage.value = 'Email enviado com sucesso! 💸'
+        }
+
         dialog.value = true
       } catch (error) {
-        responseMessage.value = error.response?.data || 'Erro ao enviar email. Tente novamente.'
+        console.error('Email send error:', error)
+
+        // Better error message handling
+        if (error.response?.data?.message) {
+          responseMessage.value = error.response.data.message
+        } else if (error.response?.data) {
+          responseMessage.value = typeof error.response.data === 'string'
+            ? error.response.data
+            : 'Erro ao enviar email. Tente novamente.'
+        } else if (error.message) {
+          responseMessage.value = `Erro: ${error.message}`
+        } else {
+          responseMessage.value = 'Erro ao enviar email. Verifique sua conexão e tente novamente.'
+        }
+
         dialog.value = true
       } finally {
         loading.value = false
@@ -315,14 +355,35 @@ export default {
           }
         )
 
-        const content = `${message.value.text}\nValor: R$ ${message.value.value}\n${fetchGif.data.data.title || ''}\n${fetchGif.data.data.url || ''}`
-        const target = `https://wa.me/?text=${encodeURIComponent(content)}`
+        // Build WhatsApp message with phone number if provided
+        const gifUrl = fetchGif.data?.data?.url || ''
+        const gifTitle = fetchGif.data?.data?.title || ''
+        const content = `${message.value.text}\n\nValor: R$ ${message.value.value}\n\n${gifTitle}\n${gifUrl}`
+
+        // If destination (phone) is provided, use it; otherwise use broadcast
+        const phoneNumber = message.value.destination ? message.value.destination.replace(/\D/g, '') : ''
+        const target = phoneNumber
+          ? `https://wa.me/${phoneNumber}?text=${encodeURIComponent(content)}`
+          : `https://wa.me/?text=${encodeURIComponent(content)}`
+
         window.open(target, '_blank')
 
-        responseMessage.value = 'Mensagem preparada! Verifique o WhatsApp.'
+        responseMessage.value = phoneNumber
+          ? `Mensagem enviada para WhatsApp! 💬\nAbrindo conversa com ${message.value.destination}`
+          : 'Mensagem preparada para WhatsApp! 💬\nSelecione o contato para enviar.'
+
         dialog.value = true
       } catch (error) {
-        responseMessage.value = 'Erro ao preparar mensagem. Tente novamente.'
+        console.error('WhatsApp send error:', error)
+
+        if (error.response?.status === 404) {
+          responseMessage.value = 'Não foi possível encontrar um GIF. Tente novamente.'
+        } else if (error.message) {
+          responseMessage.value = `Erro ao preparar mensagem: ${error.message}`
+        } else {
+          responseMessage.value = 'Erro ao preparar mensagem para WhatsApp. Tente novamente.'
+        }
+
         dialog.value = true
       } finally {
         loading.value = false
@@ -337,21 +398,25 @@ export default {
         return
       }
 
+      // Debug: Log token value
+      console.log('Turnstile token:', turnstileToken.value)
+
+      // Check if Turnstile token is available
+      if (!turnstileToken.value) {
+        responseMessage.value = 'Por favor, complete a verificação de segurança.'
+        dialog.value = true
+        return
+      }
+
       try {
-        // Load reCAPTCHA
-        await recaptchaLoaded()
-
-        // Execute reCAPTCHA
-        const token = await executeRecaptcha('submit')
-
         // Send based on selected type
         if (selectedShipmentType.value === 'email') {
-          await sendEmail(token)
+          await sendEmail(turnstileToken.value)
         } else if (selectedShipmentType.value === 'whatsapp') {
-          await sendWhatsapp(token)
+          await sendWhatsapp(turnstileToken.value)
         }
       } catch (error) {
-        responseMessage.value = 'Erro ao validar reCAPTCHA. Tente novamente.'
+        responseMessage.value = 'Erro ao processar sua solicitação. Tente novamente.'
         dialog.value = true
         loading.value = false
       }
@@ -360,7 +425,44 @@ export default {
     const closeDialog = () => {
       dialog.value = false
       responseMessage.value = ''
+
+      // Reset Turnstile token to require new verification
+      turnstileToken.value = ''
+
+      // Optional: Reset form to defaults after successful send
+      // Uncomment if you want to clear the form after each submission
+      // message.value.text = 'Nossa dívida está completando 1 mês! Você está convidado a pagar.'
+      // message.value.value = '100.00'
+      // message.value.destination = ''
     }
+
+    // Turnstile event handlers
+    const onTurnstileUpdate = (token) => {
+      console.log('Token received via @update:model-value:', token)
+      turnstileToken.value = token
+    }
+
+    const onTurnstileError = (errorCode) => {
+      console.error('Turnstile error:', errorCode)
+      responseMessage.value = 'Erro na verificação de segurança. Recarregue a página.'
+      dialog.value = true
+    }
+
+    const onTurnstileExpired = () => {
+      console.log('Turnstile token expired')
+      turnstileToken.value = ''
+    }
+
+    const onTurnstileUnsupported = () => {
+      console.error('Turnstile not supported')
+      responseMessage.value = 'Seu navegador não suporta a verificação de segurança.'
+      dialog.value = true
+    }
+
+    // Watch token changes for debugging
+    watch(turnstileToken, (newValue) => {
+      console.log('Turnstile token updated:', newValue ? 'Token received' : 'Token cleared')
+    })
 
     return {
       // Refs
@@ -372,13 +474,18 @@ export default {
       selectedShipmentType,
       message,
       moneyTransfer,
+      turnstileSiteKey,
 
       // Validation
       rules,
 
       // Methods
       handleRecaptcha,
-      closeDialog
+      closeDialog,
+      onTurnstileUpdate,
+      onTurnstileError,
+      onTurnstileExpired,
+      onTurnstileUnsupported
     }
   }
 }

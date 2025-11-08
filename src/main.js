@@ -11,9 +11,6 @@ import vuetify from './plugins/vuetify'
 import { initializeApp } from 'firebase/app'
 import { getAnalytics } from 'firebase/analytics'
 
-// Vue reCAPTCHA v3 for Vue 3
-import { VueReCaptcha } from 'vue-recaptcha-v3'
-
 // Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -43,17 +40,6 @@ const app = createApp(App)
 
 // Register plugins
 app.use(vuetify)
-
-// Register Vue reCAPTCHA v3
-app.use(VueReCaptcha, {
-  siteKey: import.meta.env.VITE_RECAPTCHA_KEY,
-  loaderOptions: {
-    autoHideBadge: false,
-    explicitRenderParameters: {
-      badge: 'bottomright',
-    },
-  },
-})
 
 // Mount app
 app.mount('#app')

@@ -11,12 +11,14 @@ const vuetify = createVuetify({
   directives
 })
 
-// Mock vue-recaptcha-v3
-vi.mock('vue-recaptcha-v3', () => ({
-  useReCaptcha: () => ({
-    executeRecaptcha: vi.fn().mockResolvedValue('test-token'),
-    recaptchaLoaded: vi.fn().mockResolvedValue(true)
-  })
+// Mock vue-turnstile
+vi.mock('vue-turnstile', () => ({
+  default: {
+    name: 'VueTurnstile',
+    template: '<div class="turnstile-widget"></div>',
+    props: ['siteKey'],
+    emits: ['success']
+  }
 }))
 
 // Mock axios

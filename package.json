@@ -18,7 +18,7 @@
     "botid": "^1.5.10",
     "firebase": "^10.8.1",
     "vue": "^3.4.21",
-    "vue-recaptcha-v3": "^2.0.1",
+    "vue-turnstile": "^1.0.11",
     "vuetify": "^3.5.7"
   },
   "devDependencies": {
