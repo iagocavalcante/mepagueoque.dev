@@ -177,6 +177,11 @@
                   ref="turnstileWidget"
                   :site-key="turnstileSiteKey"
                   :model-value="turnstileToken"
+                  v-bind="{
+                    appearance: 'always',
+                    retry: 'never',
+                    'refresh-expired': 'auto'
+                  }"
                   @update:model-value="onTurnstileUpdate"
                   @error="onTurnstileError"
                   @expired="onTurnstileExpired"
@@ -458,10 +463,15 @@ export default {
       dialog.value = false
       responseMessage.value = ''
 
-      // Reset Turnstile widget to get a fresh token for next submission
-      turnstileToken.value = ''
-      if (turnstileWidget.value?.reset) {
-        turnstileWidget.value.reset()
+      // Only reset if token was already cleared (meaning it was used)
+      // Don't reset if token is still present (widget is still working)
+      if (!turnstileToken.value && turnstileWidget.value?.reset) {
+        // Use setTimeout to avoid race conditions with widget lifecycle
+        setTimeout(() => {
+          if (turnstileWidget.value?.reset) {
+            turnstileWidget.value.reset()
+          }
+        }, 100)
       }
 
       // Optional: Reset form to defaults after successful send
@@ -484,13 +494,10 @@ export default {
     }
 
     const onTurnstileExpired = () => {
-      console.log('Turnstile token expired - resetting widget')
+      console.log('Turnstile token expired - widget will auto-renew')
       turnstileToken.value = ''
-
-      // Auto-refresh the widget when token expires
-      if (turnstileWidget.value?.reset) {
-        turnstileWidget.value.reset()
-      }
+      // Note: Don't manually reset here - the widget handles auto-renewal
+      // Manually resetting can cause conflicts with widget's internal retry logic
     }
 
     const onTurnstileUnsupported = () => {
