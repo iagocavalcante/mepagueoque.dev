@@ -174,6 +174,7 @@
               <!-- Turnstile Widget -->
               <div class="mb-4 d-flex justify-center">
                 <VueTurnstile
+                  ref="turnstileWidget"
                   :site-key="turnstileSiteKey"
                   :model-value="turnstileToken"
                   @update:model-value="onTurnstileUpdate"
@@ -255,6 +256,7 @@ export default {
   setup() {
     // Refs
     const formRef = ref(null)
+    const turnstileWidget = ref(null)
     const isValid = ref(false)
     const loading = ref(false)
     const dialog = ref(false)
@@ -317,12 +319,27 @@ export default {
         }
 
         dialog.value = true
+
+        // Clear token after successful send to prevent reuse
+        turnstileToken.value = ''
       } catch (error) {
         console.error('Email send error:', error)
 
-        // Better error message handling
-        if (error.response?.data?.message) {
+        // Better error message handling with token-specific messages
+        if (error.response?.status === 401) {
+          // Turnstile verification failed
+          const details = error.response?.data?.details || ''
+          if (details.includes('expired') || details.includes('invalid')) {
+            responseMessage.value = 'Verificação de segurança expirou. Por favor, tente novamente.'
+          } else {
+            responseMessage.value = `Verificação falhou: ${details}`
+          }
+          // Clear expired/invalid token so user gets a fresh one
+          turnstileToken.value = ''
+        } else if (error.response?.data?.message) {
           responseMessage.value = error.response.data.message
+        } else if (error.response?.data?.error) {
+          responseMessage.value = error.response.data.error
         } else if (error.response?.data) {
           responseMessage.value = typeof error.response.data === 'string'
             ? error.response.data
@@ -373,6 +390,9 @@ export default {
           : 'Mensagem preparada para WhatsApp! 💬\nSelecione o contato para enviar.'
 
         dialog.value = true
+
+        // Clear token after successful send to prevent reuse
+        turnstileToken.value = ''
       } catch (error) {
         console.error('WhatsApp send error:', error)
 
@@ -384,6 +404,8 @@ export default {
           responseMessage.value = 'Erro ao preparar mensagem para WhatsApp. Tente novamente.'
         }
 
+        // Clear token on error so user gets a fresh one
+        turnstileToken.value = ''
         dialog.value = true
       } finally {
         loading.value = false
@@ -391,15 +413,17 @@ export default {
     }
 
     const handleRecaptcha = async () => {
+      // Prevent multiple submissions
+      if (loading.value) {
+        return
+      }
+
       // Validate form
       const { valid } = await formRef.value.validate()
 
       if (!valid) {
         return
       }
-
-      // Debug: Log token value
-      console.log('Turnstile token:', turnstileToken.value)
 
       // Check if Turnstile token is available
       if (!turnstileToken.value) {
@@ -408,14 +432,22 @@ export default {
         return
       }
 
+      // Consume the token immediately to prevent reuse on multiple clicks
+      const tokenToUse = turnstileToken.value
+      turnstileToken.value = ''
+
+      // Debug: Log token consumption
+      console.log('Using Turnstile token:', tokenToUse ? 'Token consumed' : 'No token')
+
       try {
         // Send based on selected type
         if (selectedShipmentType.value === 'email') {
-          await sendEmail(turnstileToken.value)
+          await sendEmail(tokenToUse)
         } else if (selectedShipmentType.value === 'whatsapp') {
-          await sendWhatsapp(turnstileToken.value)
+          await sendWhatsapp(tokenToUse)
         }
       } catch (error) {
+        console.error('Submission error:', error)
         responseMessage.value = 'Erro ao processar sua solicitação. Tente novamente.'
         dialog.value = true
         loading.value = false
@@ -426,8 +458,11 @@ export default {
       dialog.value = false
       responseMessage.value = ''
 
-      // Reset Turnstile token to require new verification
+      // Reset Turnstile widget to get a fresh token for next submission
       turnstileToken.value = ''
+      if (turnstileWidget.value?.reset) {
+        turnstileWidget.value.reset()
+      }
 
       // Optional: Reset form to defaults after successful send
       // Uncomment if you want to clear the form after each submission
@@ -449,8 +484,13 @@ export default {
     }
 
     const onTurnstileExpired = () => {
-      console.log('Turnstile token expired')
+      console.log('Turnstile token expired - resetting widget')
       turnstileToken.value = ''
+
+      // Auto-refresh the widget when token expires
+      if (turnstileWidget.value?.reset) {
+        turnstileWidget.value.reset()
+      }
     }
 
     const onTurnstileUnsupported = () => {
@@ -467,6 +507,7 @@ export default {
     return {
       // Refs
       formRef,
+      turnstileWidget,
       isValid,
       loading,
       dialog,
@@ -475,6 +516,7 @@ export default {
       message,
       moneyTransfer,
       turnstileSiteKey,
+      turnstileToken,
 
       // Validation
       rules,
