@@ -173,6 +173,10 @@
 
               <!-- Turnstile Widget -->
               <div class="mb-4 d-flex justify-center">
+                <!-- Debug: Show site key being passed -->
+                <div style="font-size: 10px; color: #666; margin-bottom: 8px;">
+                  Site Key: {{ turnstileSiteKey?.slice(0, 12) }}...{{ turnstileSiteKey?.slice(-6) }}
+                </div>
                 <VueTurnstile
                   ref="turnstileWidget"
                   :site-key="turnstileSiteKey"
@@ -493,6 +497,12 @@ export default {
     // Turnstile event handlers
     const onTurnstileUpdate = (token) => {
       console.log('Token received via @update:model-value:', token)
+      console.log('Token stats:', {
+        length: token?.length,
+        starts: token?.slice(0, 10),
+        ends: token?.slice(-10)
+      })
+      console.log('Site key used for this token:', turnstileSiteKey)
       turnstileToken.value = token
     }
 
