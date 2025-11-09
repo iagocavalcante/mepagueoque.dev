@@ -173,10 +173,6 @@
 
               <!-- Turnstile Widget -->
               <div class="mb-4 d-flex justify-center">
-                <!-- Debug: Show site key being passed -->
-                <div style="font-size: 10px; color: #666; margin-bottom: 8px;">
-                  Site Key: {{ turnstileSiteKey?.slice(0, 12) }}...{{ turnstileSiteKey?.slice(-6) }}
-                </div>
                 <VueTurnstile
                   ref="turnstileWidget"
                   :site-key="turnstileSiteKey"
@@ -273,15 +269,6 @@ export default {
     const selectedShipmentType = ref('email')
     const turnstileToken = ref('')
     const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
-
-    // Debug: Log the site key being used (safe to show first/last few chars)
-    if (turnstileSiteKey) {
-      const preview = turnstileSiteKey.slice(0, 12) + '...' + turnstileSiteKey.slice(-6)
-      console.log('🔑 Turnstile Site Key loaded:', preview)
-      console.log('🔑 Full length:', turnstileSiteKey.length)
-    } else {
-      console.error('❌ VITE_TURNSTILE_SITE_KEY is not set!')
-    }
 
     const message = ref({
       text: 'Nossa dívida está completando 1 mês! Você está convidado a pagar.',
@@ -454,9 +441,6 @@ export default {
       const tokenToUse = turnstileToken.value
       turnstileToken.value = ''
 
-      // Debug: Log token consumption
-      console.log('Using Turnstile token:', tokenToUse ? 'Token consumed' : 'No token')
-
       try {
         // Send based on selected type
         if (selectedShipmentType.value === 'email') {
@@ -496,13 +480,6 @@ export default {
 
     // Turnstile event handlers
     const onTurnstileUpdate = (token) => {
-      console.log('Token received via @update:model-value:', token)
-      console.log('Token stats:', {
-        length: token?.length,
-        starts: token?.slice(0, 10),
-        ends: token?.slice(-10)
-      })
-      console.log('Site key used for this token:', turnstileSiteKey)
       turnstileToken.value = token
     }
 
@@ -524,11 +501,6 @@ export default {
       responseMessage.value = 'Seu navegador não suporta a verificação de segurança.'
       dialog.value = true
     }
-
-    // Watch token changes for debugging
-    watch(turnstileToken, (newValue) => {
-      console.log('Turnstile token updated:', newValue ? 'Token received' : 'Token cleared')
-    })
 
     return {
       // Refs
