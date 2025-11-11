@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# Mix
+/_build
+/deps
+/*.ez
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+/doc
+.elixir_ls
+
+# Test
+/cover
+/test
+
+# Misc
+*.log
+erl_crash.dump
