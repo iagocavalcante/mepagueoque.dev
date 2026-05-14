@@ -12,9 +12,9 @@ defmodule MepagueoqueApi.Pix.KeyType do
 
   @type key_type :: :cpf | :cnpj | :email | :phone | :random
 
-  @uuid_re ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  @email_re ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  @phone_re ~r/^\+\d{10,15}$/
+  @uuid_re ~r/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+  @email_re ~r/\A[^\s@]+@[^\s@]+\.[^\s@]+\z/
+  @phone_re ~r/\A\+\d{10,15}\z/
 
   @spec detect(String.t() | nil) :: {:ok, key_type()} | {:error, :invalid_pix_key}
   def detect(key) when is_binary(key) and key != "" do
@@ -39,6 +39,6 @@ defmodule MepagueoqueApi.Pix.KeyType do
 
   defp digit_count(str), do: str |> digits_only() |> String.length()
   defp digits_only(str), do: String.replace(str, ~r/\D/, "")
-  defp only_cpf_chars?(str), do: Regex.match?(~r/^[\d.\-]+$/, str)
-  defp only_cnpj_chars?(str), do: Regex.match?(~r/^[\d.\-\/]+$/, str)
+  defp only_cpf_chars?(str), do: Regex.match?(~r/\A[\d.\-]+\z/, str)
+  defp only_cnpj_chars?(str), do: Regex.match?(~r/\A[\d.\-\/]+\z/, str)
 end

@@ -30,6 +30,13 @@ defmodule MepagueoqueApi.Pix.KeyTypeTest do
       assert {:error, :invalid_pix_key} = KeyType.detect("")
       assert {:error, :invalid_pix_key} = KeyType.detect(nil)
     end
+
+    test "rejects keys with trailing newline (anchor sanity)" do
+      assert {:error, :invalid_pix_key} = KeyType.detect("iago@example.com\n")
+      assert {:error, :invalid_pix_key} = KeyType.detect("+5511999998888\n")
+      assert {:error, :invalid_pix_key} = KeyType.detect("12345678909\n")
+      assert {:error, :invalid_pix_key} = KeyType.detect("123e4567-e89b-12d3-a456-426614174000\n")
+    end
   end
 
   describe "normalize/2" do
