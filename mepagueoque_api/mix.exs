@@ -20,7 +20,7 @@ defmodule MepagueoqueApi.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :crypto, :inets],
+      extra_applications: [:logger, :crypto, :inets, :ecto_sql],
       mod: {MepagueoqueApi.Application, []}
     ]
   end
@@ -46,7 +46,11 @@ defmodule MepagueoqueApi.MixProject do
       {:cors_plug, "~> 3.0"},
 
       # Configuration
-      {:dotenvy, "~> 0.8"}
+      {:dotenvy, "~> 0.8"},
+
+      # Database
+      {:ecto_sql, "~> 3.12"},
+      {:ecto_sqlite3, "~> 0.17"}
     ]
   end
 end
