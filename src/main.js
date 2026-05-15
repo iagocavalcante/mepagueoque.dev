@@ -6,6 +6,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import vuetify from './plugins/vuetify'
+import { router } from './router'
 
 // Firebase 10+ modular imports
 import { initializeApp } from 'firebase/app'
@@ -40,6 +41,7 @@ const app = createApp(App)
 
 // Register plugins
 app.use(vuetify)
+app.use(router)
 
 // Mount app
 app.mount('#app')
