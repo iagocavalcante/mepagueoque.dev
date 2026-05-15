@@ -4,6 +4,16 @@ defmodule MepagueoqueApi.Pix.BrCode do
 
   Implements the BCB "Manual de Padrões para Iniciação do Pix" TLV format
   with CRC16-CCITT/FALSE (poly 0x1021, init 0xFFFF, no reflection).
+
+  ## Boundary assumptions
+
+    * PIX keys are assumed ASCII; upstream validation in `MepagueoqueApi.Pix.KeyType`
+      enforces this for the formats this product supports (cpf, cnpj, email, phone, random).
+    * Amount is required (`amount_cents > 0`). This module does not emit amountless
+      QRs (BCB allows them, but the product spec requires a fixed amount).
+    * TXID sanitization is permissive of space, `.`, `/`, and `-` for readability —
+      real-world bank apps accept this; strict BCB validators may not. Tightening
+      to `[A-Za-z0-9]` only is a one-line change if certification is later required.
   """
 
   @gui "br.gov.bcb.pix"
@@ -54,7 +64,7 @@ defmodule MepagueoqueApi.Pix.BrCode do
     payload =
       [
         tlv("00", "01"),
-        merchant_account(input.pix_key, ascii_fold(input.description)),
+        merchant_account(input.pix_key),
         tlv("52", @merchant_category),
         tlv("53", @currency_brl),
         tlv("54", format_amount(input.amount_cents)),
@@ -72,9 +82,9 @@ defmodule MepagueoqueApi.Pix.BrCode do
 
   @spec valid_crc?(String.t()) :: boolean()
   def valid_crc?(payload) when byte_size(payload) > 4 do
-    {body, given_crc} = String.split_at(payload, -4)
-    expected = crc16(body)
-    String.upcase(given_crc) == expected
+    body_size = byte_size(payload) - 4
+    <<body::binary-size(body_size), given_crc::binary-size(4)>> = payload
+    String.upcase(given_crc) == crc16(body)
   end
 
   def valid_crc?(_), do: false
@@ -86,7 +96,7 @@ defmodule MepagueoqueApi.Pix.BrCode do
     id <> len <> value
   end
 
-  defp merchant_account(pix_key, _txid_hint) do
+  defp merchant_account(pix_key) do
     inner = tlv("00", @gui) <> tlv("01", pix_key)
     tlv("26", inner)
   end
@@ -108,8 +118,8 @@ defmodule MepagueoqueApi.Pix.BrCode do
 
   defp format_amount(cents) do
     reais = div(cents, 100)
-    rem_ = rem(cents, 100)
-    "#{reais}." <> String.pad_leading(Integer.to_string(rem_), 2, "0")
+    cents_part = rem(cents, 100)
+    "#{reais}." <> String.pad_leading(Integer.to_string(cents_part), 2, "0")
   end
 
   # ── CRC16-CCITT/FALSE ──────────────────────────────────────────────────────
