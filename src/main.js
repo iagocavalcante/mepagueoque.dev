@@ -8,32 +8,14 @@ import App from './App.vue'
 import vuetify from './plugins/vuetify'
 import { router } from './router'
 
-// Firebase 10+ modular imports
-import { initializeApp } from 'firebase/app'
-import { getAnalytics } from 'firebase/analytics'
+import { firebaseApp } from './lib/firebase'
+import { enableAnalytics, getConsent } from './lib/analytics'
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-}
-
-// Initialize Firebase
-const firebaseApp = initializeApp(firebaseConfig)
-
-// Initialize Analytics only in production
-if (import.meta.env.PROD && firebaseConfig.measurementId) {
-  try {
-    getAnalytics(firebaseApp)
-  } catch (error) {
-    console.warn('Analytics initialization failed:', error)
-  }
+// Only enable analytics if the user previously accepted cookies.
+// First-time visitors see the consent banner and analytics stays off
+// until they click "Aceitar" (which calls enableAnalytics directly).
+if (getConsent() === 'accepted') {
+  enableAnalytics(firebaseApp)
 }
 
 // Create Vue app

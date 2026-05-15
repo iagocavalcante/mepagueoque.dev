@@ -7,16 +7,18 @@
       <Content />
     </v-main>
     <Footer />
+    <CookieConsent />
   </v-app>
 </template>
 
 <script>
 import Content from './components/Content.vue'
 import Footer from './components/Footer.vue'
+import CookieConsent from './components/CookieConsent.vue'
 
 export default {
   name: 'App',
-  components: { Content, Footer },
+  components: { Content, Footer, CookieConsent },
 }
 </script>
 

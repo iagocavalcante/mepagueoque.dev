@@ -22,7 +22,11 @@ const buildVuetify = () => createVuetify({ components, directives })
 const buildRouter = () =>
   createRouter({
     history: createWebHistory(),
-    routes: [{ path: '/p/:slug', name: 'payment', component: { template: '<div>p</div>' } }],
+    routes: [
+      { path: '/p/:slug', name: 'payment', component: { template: '<div>p</div>' } },
+      { path: '/politica-de-privacidade', name: 'privacy', component: { template: '<div>p</div>' } },
+      { path: '/termos', name: 'terms', component: { template: '<div>t</div>' } },
+    ],
   })
 
 describe('CreatePaymentPage', () => {
@@ -43,6 +47,7 @@ describe('CreatePaymentPage', () => {
     await wrapper.find('[data-test="amount"] input').setValue('15.00')
     // Turnstile token is set via prop or refs; in test we cheat:
     wrapper.vm.turnstileToken = 'bypass'
+    wrapper.vm.privacyAccepted = true
     await wrapper.vm.$nextTick()
 
     await wrapper.find('form').trigger('submit')
@@ -66,6 +71,7 @@ describe('CreatePaymentPage', () => {
     await wrapper.find('[data-test="amount"] input').setValue('15.00')
     await wrapper.find('[data-test="slug"] input').setValue('dup')
     wrapper.vm.turnstileToken = 'bypass'
+    wrapper.vm.privacyAccepted = true
     await wrapper.vm.$nextTick()
 
     await wrapper.find('form').trigger('submit')

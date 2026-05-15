@@ -54,13 +54,30 @@
         class="my-4"
       />
 
+      <v-checkbox
+        v-model="privacyAccepted"
+        data-test="privacy-accept"
+        density="compact"
+        hide-details
+        class="my-2"
+      >
+        <template #label>
+          <span class="text-body-2">
+            Li e concordo com a
+            <router-link :to="{ name: 'privacy' }" target="_blank">Política de Privacidade</router-link>
+            e os
+            <router-link :to="{ name: 'terms' }" target="_blank">Termos de Uso</router-link>.
+          </span>
+        </template>
+      </v-checkbox>
+
       <v-alert v-if="error" type="error" class="my-3">{{ error }}</v-alert>
 
       <v-btn
         color="primary"
         type="submit"
         :loading="loading"
-        :disabled="!turnstileToken"
+        :disabled="!turnstileToken || !privacyAccepted"
         data-test="submit"
         block
       >
@@ -90,6 +107,7 @@ const form = reactive({
 })
 
 const turnstileToken = ref('')
+const privacyAccepted = ref(false)
 const loading = ref(false)
 const error = ref('')
 
@@ -125,5 +143,5 @@ const submit = async () => {
   }
 }
 
-defineExpose({ turnstileToken })
+defineExpose({ turnstileToken, privacyAccepted })
 </script>
