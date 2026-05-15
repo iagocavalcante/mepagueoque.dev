@@ -1,1 +1,86 @@
-<template><div>Em breve</div></template>
+<template>
+  <v-container class="py-12" max-width="500">
+    <v-progress-circular v-if="loading" indeterminate class="d-block mx-auto my-8" />
+
+    <div v-else-if="notFound" class="text-center">
+      <h1 class="text-h5 mb-4">Esse link expirou ou não existe</h1>
+      <v-btn :to="{ name: 'create-payment' }" color="primary">Criar um novo</v-btn>
+    </div>
+
+    <div v-else-if="data">
+      <h1 class="text-h4 mb-2">{{ formatBRL(data.amount_cents) }}</h1>
+      <p class="text-subtitle-1 mb-2">para <strong>{{ data.beneficiary_name }}</strong></p>
+      <p class="text-body-2 mb-6">{{ data.description }}</p>
+
+      <canvas ref="qrCanvas" class="d-block mx-auto mb-6" />
+
+      <v-textarea
+        :model-value="data.br_code"
+        readonly
+        auto-grow
+        rows="3"
+        data-test="br-code"
+        class="mb-2"
+      />
+
+      <v-btn block color="primary" @click="copy" class="mb-2">
+        {{ copied ? 'Copiado ✓' : 'Copiar código PIX' }}
+      </v-btn>
+      <v-btn block variant="outlined" @click="share">Compartilhar link</v-btn>
+
+      <p class="text-caption text-center mt-6">
+        Expira em {{ formatDate(data.expires_at) }}
+      </p>
+    </div>
+  </v-container>
+</template>
+
+<script setup>
+import { ref, onMounted, nextTick } from 'vue'
+import axios from 'axios'
+import QRCode from 'qrcode'
+
+const props = defineProps({ slug: { type: String, required: true } })
+const apiHost = import.meta.env.VITE_API_HOST || import.meta.env.VITE_LAMBDA_HOST?.replace('/enviar-cobranca', '')
+
+const loading = ref(true)
+const notFound = ref(false)
+const data = ref(null)
+const copied = ref(false)
+const qrCanvas = ref(null)
+
+onMounted(async () => {
+  try {
+    const res = await axios.get(`${apiHost}/pagamentos/${props.slug}`)
+    data.value = res.data
+    await nextTick()
+    if (qrCanvas.value) await QRCode.toCanvas(qrCanvas.value, res.data.br_code, { width: 280 })
+  } catch (e) {
+    notFound.value = true
+  } finally {
+    loading.value = false
+  }
+})
+
+const copy = async () => {
+  if (!data.value) return
+  await navigator.clipboard.writeText(data.value.br_code)
+  copied.value = true
+  setTimeout(() => (copied.value = false), 2000)
+}
+
+const share = async () => {
+  const url = window.location.href
+  if (navigator.share) {
+    try { await navigator.share({ url }) } catch {}
+  } else {
+    await navigator.clipboard.writeText(url)
+  }
+}
+
+const formatBRL = (cents) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)
+
+const formatDate = (iso) =>
+  new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+</script>
