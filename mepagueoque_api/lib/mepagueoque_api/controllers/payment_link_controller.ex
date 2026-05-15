@@ -11,7 +11,7 @@ defmodule MepagueoqueApi.Controllers.PaymentLinkController do
   `{:error, :slug_taken}` via the `unique_constraint(:slug)` in the changeset.
   """
 
-  require Logger
+  import Ecto.Query
 
   alias MepagueoqueApi.Pix.BrCode
   alias MepagueoqueApi.Repo
@@ -32,6 +32,48 @@ defmodule MepagueoqueApi.Controllers.PaymentLinkController do
          {:ok, link} <- insert_link(params),
          {:ok, br_code} <- build_br_code(link) do
       {:ok, %{slug: link.slug, br_code: br_code, expires_at: link.expires_at}}
+    end
+  end
+
+  @spec show(String.t()) ::
+          {:ok,
+           %{
+             slug: String.t(),
+             beneficiary_name: String.t(),
+             description: String.t(),
+             amount_cents: integer(),
+             br_code: String.t(),
+             expires_at: DateTime.t()
+           }}
+          | {:error, :not_found}
+  def show(slug) when is_binary(slug) do
+    now = DateTime.utc_now()
+
+    query =
+      from(p in PaymentLink,
+        where: p.slug == ^slug and p.expires_at > ^now
+      )
+
+    case Repo.one(query) do
+      nil ->
+        {:error, :not_found}
+
+      link ->
+        case build_br_code(link) do
+          {:ok, br_code} ->
+            {:ok,
+             %{
+               slug: link.slug,
+               beneficiary_name: link.beneficiary_name,
+               description: link.description,
+               amount_cents: link.amount_cents,
+               br_code: br_code,
+               expires_at: link.expires_at
+             }}
+
+          {:error, :internal_error, _} ->
+            {:error, :not_found}
+        end
     end
   end
 
@@ -60,7 +102,7 @@ defmodule MepagueoqueApi.Controllers.PaymentLinkController do
   # ── Insert ────────────────────────────────────────────────────────────────
 
   defp insert_link(params) do
-    changeset = PaymentLink.changeset(%PaymentLink{}, normalize_keys(params))
+    changeset = PaymentLink.changeset(%PaymentLink{}, params)
 
     case Repo.insert(changeset) do
       {:ok, link} ->
@@ -99,18 +141,6 @@ defmodule MepagueoqueApi.Controllers.PaymentLinkController do
 
   # ── Helpers ───────────────────────────────────────────────────────────────
 
-  # Convert string keys to existing atoms so the changeset cast picks them up.
-  # If a key isn't a known atom, we leave the map untouched — `cast/4` will
-  # drop unknown keys regardless.
-  defp normalize_keys(params) when is_map(params) do
-    Map.new(params, fn
-      {k, v} when is_binary(k) -> {String.to_existing_atom(k), v}
-      {k, v} -> {k, v}
-    end)
-  rescue
-    ArgumentError -> params
-  end
-
   defp format_errors(%Ecto.Changeset{} = cs) do
     Ecto.Changeset.traverse_errors(cs, fn {msg, opts} ->
       Enum.reduce(opts, msg, fn {k, v}, acc ->
@@ -126,6 +156,12 @@ defmodule MepagueoqueApi.Controllers.PaymentLinkController do
 
       ip = conn |> Plug.Conn.get_req_header("cf-connecting-ip") |> List.first() ->
         ip
+
+      forwarded = conn |> Plug.Conn.get_req_header("x-forwarded-for") |> List.first() ->
+        forwarded |> String.split(",") |> List.first() |> String.trim()
+
+      real_ip = conn |> Plug.Conn.get_req_header("x-real-ip") |> List.first() ->
+        real_ip
 
       true ->
         case conn.remote_ip do

@@ -45,6 +45,35 @@ defmodule MepagueoqueApi.Controllers.PaymentLinkControllerTest do
     end
   end
 
+  describe "show/1" do
+    test "returns link payload + BR code" do
+      {:ok, %{slug: slug}} =
+        PaymentLinkController.create(build_conn(), base_params(%{"slug" => "live"}))
+
+      assert {:ok, payload} = PaymentLinkController.show(slug)
+
+      assert payload.slug == "live"
+      assert payload.beneficiary_name == "IAGO"
+      assert payload.description == "VOLEI"
+      assert payload.amount_cents == 1500
+      assert String.contains?(payload.br_code, "iago@example.com")
+      assert %DateTime{} = payload.expires_at
+    end
+
+    test "returns :not_found when slug missing" do
+      assert {:error, :not_found} = PaymentLinkController.show("nope")
+    end
+
+    test "returns :not_found for expired link" do
+      {:ok, %{slug: slug}} =
+        PaymentLinkController.create(build_conn(), base_params(%{"slug" => "old"}))
+
+      past = DateTime.add(DateTime.utc_now(), -1, :second)
+      Repo.update_all(from(p in PaymentLink, where: p.slug == ^slug), set: [expires_at: past])
+      assert {:error, :not_found} = PaymentLinkController.show("old")
+    end
+  end
+
   defp build_conn do
     %Plug.Conn{remote_ip: {127, 0, 0, 1}, req_headers: []}
   end
