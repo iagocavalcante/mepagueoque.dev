@@ -30,6 +30,7 @@ RUN mix deps.compile
 
 # Copy application source
 COPY lib lib
+COPY priv priv
 COPY .formatter.exs .
 
 # Compile application
