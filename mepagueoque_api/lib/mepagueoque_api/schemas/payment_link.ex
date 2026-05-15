@@ -49,8 +49,8 @@ defmodule MepagueoqueApi.Schemas.PaymentLink do
     field(:expires_at, :utc_datetime)
   end
 
-  @required_for_create [:pix_key, :beneficiary_name, :city, :description, :amount_cents]
-  @optional_for_create [:slug]
+  @required_for_create [:pix_key, :beneficiary_name, :description, :amount_cents]
+  @optional_for_create [:slug, :city]
 
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(struct, attrs) do

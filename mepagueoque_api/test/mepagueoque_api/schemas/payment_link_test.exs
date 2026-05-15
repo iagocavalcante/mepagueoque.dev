@@ -58,6 +58,49 @@ defmodule MepagueoqueApi.Schemas.PaymentLinkTest do
       changeset = PaymentLink.changeset(%PaymentLink{}, valid_attrs())
       assert Ecto.Changeset.get_field(changeset, :pix_key_type) == "email"
     end
+
+    test "defaults city to BRASIL when blank string" do
+      attrs = %{valid_attrs() | city: ""}
+      cs = PaymentLink.changeset(%PaymentLink{}, attrs)
+      assert cs.valid?
+      assert Ecto.Changeset.get_field(cs, :city) == "BRASIL"
+    end
+
+    test "defaults city to BRASIL when nil" do
+      attrs = valid_attrs() |> Map.delete(:city)
+      cs = PaymentLink.changeset(%PaymentLink{}, attrs)
+      assert cs.valid?
+      assert Ecto.Changeset.get_field(cs, :city) == "BRASIL"
+    end
+
+    test "lowercases email pix_key (stores normalized)" do
+      attrs = %{valid_attrs() | pix_key: "IAGO@EXAMPLE.COM"}
+      cs = PaymentLink.changeset(%PaymentLink{}, attrs)
+      assert cs.valid?
+      assert Ecto.Changeset.get_field(cs, :pix_key) == "iago@example.com"
+    end
+
+    test "strips formatting from CPF pix_key" do
+      attrs = %{valid_attrs() | pix_key: "123.456.789-09"}
+      cs = PaymentLink.changeset(%PaymentLink{}, attrs)
+      assert cs.valid?
+      assert Ecto.Changeset.get_field(cs, :pix_key) == "12345678909"
+      assert Ecto.Changeset.get_field(cs, :pix_key_type) == "cpf"
+    end
+
+    test "detects all pix_key_types" do
+      for {key, expected_type} <- [
+            {"12345678909", "cpf"},
+            {"12345678000190", "cnpj"},
+            {"+5511999998888", "phone"},
+            {"550e8400-e29b-41d4-a716-446655440000", "random"}
+          ] do
+        attrs = %{valid_attrs() | pix_key: key}
+        cs = PaymentLink.changeset(%PaymentLink{}, attrs)
+        assert cs.valid?, "expected valid changeset for #{key}, got errors: #{inspect(cs.errors)}"
+        assert Ecto.Changeset.get_field(cs, :pix_key_type) == expected_type
+      end
+    end
   end
 
   defp valid_attrs do
