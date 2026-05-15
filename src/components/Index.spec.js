@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createVuetify } from 'vuetify'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import Index from './Index.vue'
@@ -9,6 +10,15 @@ import Index from './Index.vue'
 const vuetify = createVuetify({
   components,
   directives
+})
+
+// Create router for testing - Index uses <router-link> to /criar
+const router = createRouter({
+  history: createMemoryHistory(),
+  routes: [
+    { path: '/', name: 'home', component: { template: '<div>home</div>' } },
+    { path: '/criar', name: 'create-payment', component: { template: '<div>criar</div>' } }
+  ]
 })
 
 // Mock vue-turnstile
@@ -42,7 +52,7 @@ describe('Index Component', () => {
   beforeEach(() => {
     wrapper = mount(Index, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, router],
         stubs: {
           VImg: true
         }

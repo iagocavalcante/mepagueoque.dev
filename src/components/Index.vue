@@ -207,6 +207,15 @@
                 />
                 Cobrar!
               </v-btn>
+
+              <!-- Payment link CTA -->
+              <router-link
+                to="/criar"
+                class="text-body-2 d-block text-center mt-4 payment-link-cta"
+                data-testid="create-payment-link"
+              >
+                ou crie um link de cobrança compartilhável (PIX) →
+              </router-link>
             </v-form>
           </v-card-text>
         </v-card>
