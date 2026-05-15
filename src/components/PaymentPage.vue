@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import QRCode from 'qrcode'
 
@@ -49,12 +49,19 @@ const data = ref(null)
 const copied = ref(false)
 const qrCanvas = ref(null)
 
+// Draw the QR once both data and the canvas element exist. The canvas
+// only mounts after loading flips to false, so we can't await its presence
+// inline in onMounted.
+watch([qrCanvas, data], async ([canvas, payload]) => {
+  if (canvas && payload?.br_code) {
+    await QRCode.toCanvas(canvas, payload.br_code, { width: 280 })
+  }
+})
+
 onMounted(async () => {
   try {
     const res = await axios.get(`${apiHost}/pagamentos/${props.slug}`)
     data.value = res.data
-    await nextTick()
-    if (qrCanvas.value) await QRCode.toCanvas(qrCanvas.value, res.data.br_code, { width: 280 })
   } catch (e) {
     notFound.value = true
   } finally {

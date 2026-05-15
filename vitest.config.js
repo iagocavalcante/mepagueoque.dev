@@ -18,6 +18,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.js'],
     css: true,
+    exclude: ['**/node_modules/**', '**/dist/**', '.worktrees/**'],
     server: {
       deps: {
         inline: ['vuetify']
