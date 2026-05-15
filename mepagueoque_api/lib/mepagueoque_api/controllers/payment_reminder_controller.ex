@@ -8,6 +8,7 @@ defmodule MepagueoqueApi.Controllers.PaymentReminderController do
 
   require Logger
 
+  alias MepagueoqueApi.PrivacyLog
   alias MepagueoqueApi.Schemas.PaymentReminder
   alias MepagueoqueApi.Services.{Turnstile, Giphy, Resend}
 
@@ -79,56 +80,38 @@ defmodule MepagueoqueApi.Controllers.PaymentReminderController do
   @spec verify_turnstile(PaymentReminder.t(), String.t() | nil) ::
           {:ok, map()} | {:error, :turnstile_verification_failed, String.t()}
   defp verify_turnstile(%PaymentReminder{token: token}, client_ip) do
-    Logger.info("Verifying Turnstile with client IP: #{inspect(client_ip)}")
-
     case Turnstile.verify(token, client_ip) do
       {:ok, data} ->
-        Logger.info("Turnstile verification successful: #{inspect(data)}")
         {:ok, data}
 
       {:error, reason} ->
-        Logger.error("Turnstile verification failed - IP: #{inspect(client_ip)}, Reason: #{inspect(reason)}")
+        Logger.warning(
+          "Turnstile verification failed - IP: #{inspect(PrivacyLog.mask_ip(client_ip))}, Reason: #{inspect(reason)}"
+        )
+
         {:error, :turnstile_verification_failed, reason}
     end
   end
 
   @spec get_client_ip(Plug.Conn.t()) :: String.t() | nil
   defp get_client_ip(conn) do
-    # Try to get the real IP from various headers (proxy/CDN aware)
     cond do
-      # Fly.io header (priority for Fly.io deployments)
-      fly_ip = Plug.Conn.get_req_header(conn, "fly-client-ip") |> List.first() ->
-        Logger.info("Client IP from Fly-Client-IP: #{fly_ip}")
-        fly_ip
-
-      # Cloudflare header
-      cf_ip = Plug.Conn.get_req_header(conn, "cf-connecting-ip") |> List.first() ->
-        Logger.info("Client IP from CF-Connecting-IP: #{cf_ip}")
-        cf_ip
-
-      # Standard forwarded-for header
-      forwarded = Plug.Conn.get_req_header(conn, "x-forwarded-for") |> List.first() ->
-        # Take first IP in the chain
-        ip = forwarded |> String.split(",") |> List.first() |> String.trim()
-        Logger.info("Client IP from X-Forwarded-For: #{ip}")
+      ip = Plug.Conn.get_req_header(conn, "fly-client-ip") |> List.first() ->
         ip
 
-      # Real IP header
+      ip = Plug.Conn.get_req_header(conn, "cf-connecting-ip") |> List.first() ->
+        ip
+
+      forwarded = Plug.Conn.get_req_header(conn, "x-forwarded-for") |> List.first() ->
+        forwarded |> String.split(",") |> List.first() |> String.trim()
+
       real_ip = Plug.Conn.get_req_header(conn, "x-real-ip") |> List.first() ->
-        Logger.info("Client IP from X-Real-IP: #{real_ip}")
         real_ip
 
-      # Fallback to remote IP from connection
       true ->
         case conn.remote_ip do
-          {a, b, c, d} ->
-            ip = "#{a}.#{b}.#{c}.#{d}"
-            Logger.info("Client IP from remote_ip: #{ip}")
-            ip
-
-          _ ->
-            Logger.warning("Could not extract client IP")
-            nil
+          {a, b, c, d} -> "#{a}.#{b}.#{c}.#{d}"
+          _ -> nil
         end
     end
   end

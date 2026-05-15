@@ -86,21 +86,8 @@ defmodule MepagueoqueApi.Services.Turnstile do
   @spec make_verification_request(String.t(), String.t(), String.t() | nil) ::
           {:ok, map()} | {:error, String.t()}
   defp make_verification_request(secret, token, remoteip) do
-    # Log token info for debugging (without exposing full token)
-    token_preview = String.slice(token, 0..15) <> "..." <> String.slice(token, -5..-1//1)
-    Logger.info("Token length: #{String.length(token)}, preview: #{token_preview}")
+    params = %{secret: secret, response: token}
 
-    # Log secret key info (without exposing full secret)
-    secret_preview = String.slice(secret, 0..15) <> "..." <> String.slice(secret, -8..-1//1)
-    Logger.info("Using secret key: #{secret_preview} (length: #{String.length(secret)})")
-
-    # Build base params
-    params = %{
-      secret: secret,
-      response: token
-    }
-
-    # Add remoteip if provided (recommended by Cloudflare)
     params =
       if remoteip && is_binary(remoteip) && remoteip != "" do
         Map.put(params, :remoteip, remoteip)
@@ -108,26 +95,8 @@ defmodule MepagueoqueApi.Services.Turnstile do
         params
       end
 
-    Logger.info("Verifying Turnstile token with params: #{inspect(Map.keys(params))}")
-    Logger.info("Remote IP being sent to Turnstile: #{inspect(remoteip)}")
-
-    # Log sanitized params for debugging
-    sanitized_params = %{
-      secret_preview: String.slice(secret, 0..7) <> "...",
-      response_length: String.length(token),
-      remoteip: remoteip
-    }
-    Logger.info("Request params (sanitized): #{inspect(sanitized_params)}")
-
     case Req.post(@turnstile_url, form: params) do
       {:ok, %{status: 200, body: body}} when is_map(body) ->
-        # Log complete response for debugging
-        Logger.info("Turnstile FULL response: #{inspect(body, pretty: true)}")
-        Logger.info("Response success: #{inspect(Map.get(body, "success"))}")
-        Logger.info("Response hostname: #{inspect(Map.get(body, "hostname"))}")
-        Logger.info("Response error-codes: #{inspect(Map.get(body, "error-codes"))}")
-        Logger.info("Response challenge_ts: #{inspect(Map.get(body, "challenge_ts"))}")
-        Logger.info("Response action: #{inspect(Map.get(body, "action"))}")
         {:ok, body}
 
       {:ok, %{status: status, body: body}} ->
@@ -145,37 +114,19 @@ defmodule MepagueoqueApi.Services.Turnstile do
   end
 
   @spec validate_response(map()) :: {:ok, map()} | {:error, String.t()}
-  defp validate_response(%{"success" => true} = body) do
-    Logger.info("✅ Turnstile verification successful!")
-    {:ok, body}
+  defp validate_response(%{"success" => true} = body), do: {:ok, body}
+
+  defp validate_response(%{"success" => false, "error-codes" => error_codes}) do
+    Logger.warning("Turnstile rejected token. Codes: #{inspect(error_codes)}")
+    {:error, format_error_codes(error_codes)}
   end
 
-  defp validate_response(%{"success" => false, "error-codes" => error_codes} = body) do
-    Logger.error("❌ Turnstile verification FAILED!")
-    Logger.error("Error codes: #{inspect(error_codes)}")
-    Logger.error("Full error body: #{inspect(body, pretty: true)}")
-
-    # Log additional context
-    Logger.error("Possible causes for 'invalid-input-response':")
-    Logger.error("  1. Token expired (older than 5 minutes)")
-    Logger.error("  2. Token already used (single-use only)")
-    Logger.error("  3. Domain not whitelisted in Turnstile config")
-    Logger.error("  4. Token generated with different site key")
-    Logger.error("  5. Token format invalid or corrupted")
-
-    error_message = format_error_codes(error_codes)
-    {:error, error_message}
-  end
-
-  defp validate_response(%{"success" => false} = body) do
-    Logger.warning("Turnstile verification failed: unknown reason")
-    Logger.warning("Body: #{inspect(body, pretty: true)}")
+  defp validate_response(%{"success" => false}) do
     {:error, "Turnstile verification failed"}
   end
 
-  defp validate_response(body) do
+  defp validate_response(_body) do
     Logger.warning("Unexpected Turnstile response format")
-    Logger.warning("Body: #{inspect(body, pretty: true)}")
     {:error, "Invalid response from Turnstile"}
   end
 

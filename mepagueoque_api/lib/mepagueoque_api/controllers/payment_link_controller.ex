@@ -24,15 +24,71 @@ defmodule MepagueoqueApi.Controllers.PaymentLinkController do
           | {:error, :turnstile_verification_failed, String.t()}
           | {:error, :internal_error, String.t()}
 
-  @type create_ok :: %{slug: String.t(), br_code: String.t(), expires_at: DateTime.t()}
+  @type create_ok :: %{
+          slug: String.t(),
+          br_code: String.t(),
+          expires_at: DateTime.t(),
+          revocation_token: String.t()
+        }
 
   @spec create(Plug.Conn.t(), map()) :: {:ok, create_ok()} | create_error()
   def create(conn, params) do
+    revocation_token = generate_revocation_token()
+
+    params_with_hash =
+      Map.put(params, "revocation_token_hash", hash_revocation_token(revocation_token))
+
     with {:ok, _} <- verify_turnstile(conn, params),
-         {:ok, link} <- insert_link(params),
+         {:ok, link} <- insert_link(params_with_hash),
          {:ok, br_code} <- build_br_code(link) do
-      {:ok, %{slug: link.slug, br_code: br_code, expires_at: link.expires_at}}
+      {:ok,
+       %{
+         slug: link.slug,
+         br_code: br_code,
+         expires_at: link.expires_at,
+         revocation_token: revocation_token
+       }}
     end
+  end
+
+  @doc """
+  Revoke (delete) a payment link. Requires the raw revocation token returned
+  on creation. Compares its SHA-256 hash against the stored hash in constant
+  time to avoid timing attacks.
+  """
+  @spec revoke(String.t(), String.t()) ::
+          :ok | {:error, :not_found} | {:error, :unauthorized}
+  def revoke(slug, token) when is_binary(slug) and is_binary(token) do
+    case Repo.get_by(PaymentLink, slug: slug) do
+      nil ->
+        {:error, :not_found}
+
+      %PaymentLink{revocation_token_hash: nil} ->
+        # Pre-revocation-feature link — can't be revoked via this endpoint.
+        {:error, :unauthorized}
+
+      %PaymentLink{revocation_token_hash: stored_hash} = link ->
+        given_hash = hash_revocation_token(token)
+
+        if Plug.Crypto.secure_compare(given_hash, stored_hash) do
+          Repo.delete(link)
+          :ok
+        else
+          {:error, :unauthorized}
+        end
+    end
+  end
+
+  def revoke(_, _), do: {:error, :not_found}
+
+  # ── Revocation token ──────────────────────────────────────────────────────
+
+  defp generate_revocation_token do
+    :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+  end
+
+  defp hash_revocation_token(token) do
+    :crypto.hash(:sha256, token) |> Base.encode16(case: :lower)
   end
 
   @spec show(String.t()) ::

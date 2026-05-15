@@ -74,6 +74,42 @@ defmodule MepagueoqueApi.Controllers.PaymentLinkControllerTest do
     end
   end
 
+  describe "revoke/2" do
+    test "deletes the link when token matches" do
+      {:ok, %{slug: slug, revocation_token: token}} =
+        PaymentLinkController.create(build_conn(), base_params(%{"slug" => "revoke-me"}))
+
+      assert Repo.get_by(PaymentLink, slug: slug)
+      assert :ok = PaymentLinkController.revoke(slug, token)
+      refute Repo.get_by(PaymentLink, slug: slug)
+    end
+
+    test "returns :unauthorized when token mismatches" do
+      {:ok, %{slug: slug}} =
+        PaymentLinkController.create(build_conn(), base_params(%{"slug" => "keep-me"}))
+
+      assert {:error, :unauthorized} = PaymentLinkController.revoke(slug, "wrong-token")
+      assert Repo.get_by(PaymentLink, slug: slug)
+    end
+
+    test "returns :not_found when slug missing" do
+      assert {:error, :not_found} = PaymentLinkController.revoke("nope", "any-token")
+    end
+
+    test "returns :unauthorized for legacy links without a hash" do
+      {:ok, %{slug: slug}} =
+        PaymentLinkController.create(build_conn(), base_params(%{"slug" => "legacy"}))
+
+      # Simulate a pre-feature row.
+      Repo.update_all(
+        from(p in PaymentLink, where: p.slug == ^slug),
+        set: [revocation_token_hash: nil]
+      )
+
+      assert {:error, :unauthorized} = PaymentLinkController.revoke(slug, "any-token")
+    end
+  end
+
   defp build_conn do
     %Plug.Conn{remote_ip: {127, 0, 0, 1}, req_headers: []}
   end

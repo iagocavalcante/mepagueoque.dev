@@ -127,6 +127,16 @@ const submit = async () => {
 
   try {
     const { data } = await axios.post(`${apiHost}/pagamentos`, payload)
+    // Persist the revocation token in localStorage so the creator can
+    // delete the link later from the /p/{slug} page. Keyed by slug so
+    // multiple links coexist in the same browser.
+    if (data.revocation_token) {
+      try {
+        localStorage.setItem(`revoke_token:${data.slug}`, data.revocation_token)
+      } catch {
+        // localStorage unavailable — revocation still possible via email
+      }
+    }
     router.push({ name: 'payment', params: { slug: data.slug } })
   } catch (e) {
     if (e?.response?.status === 409) {

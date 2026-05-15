@@ -32,6 +32,7 @@ defmodule MepagueoqueApi.Schemas.PaymentLink do
           city: String.t() | nil,
           description: String.t() | nil,
           amount_cents: integer() | nil,
+          revocation_token_hash: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           expires_at: DateTime.t() | nil
         }
@@ -45,12 +46,13 @@ defmodule MepagueoqueApi.Schemas.PaymentLink do
     field(:city, :string)
     field(:description, :string)
     field(:amount_cents, :integer)
+    field(:revocation_token_hash, :string)
     field(:inserted_at, :utc_datetime)
     field(:expires_at, :utc_datetime)
   end
 
   @required_for_create [:pix_key, :beneficiary_name, :description, :amount_cents]
-  @optional_for_create [:slug, :city]
+  @optional_for_create [:slug, :city, :revocation_token_hash]
 
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(struct, attrs) do

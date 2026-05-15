@@ -36,9 +36,27 @@
       </v-btn>
       <v-btn block variant="outlined" @click="share">Compartilhar link</v-btn>
 
+      <v-btn
+        v-if="revocationToken && !revoked"
+        block
+        variant="text"
+        color="error"
+        class="mt-4"
+        :loading="revoking"
+        data-test="revoke"
+        @click="revoke"
+      >
+        Revogar este link
+      </v-btn>
+
       <p class="text-caption text-center mt-6">
         Expira em {{ formatDate(data.expires_at) }}
       </p>
+    </div>
+
+    <div v-else-if="revoked" class="text-center">
+      <h1 class="text-h5 mb-4">Link revogado</h1>
+      <v-btn :to="{ name: 'create-payment' }" color="primary">Criar outro</v-btn>
     </div>
   </v-container>
 </template>
@@ -58,6 +76,41 @@ const copied = ref(false)
 const qrCanvas = ref(null)
 const gifUrl = ref('')
 const gifTitle = ref('')
+const revocationToken = ref('')
+const revoking = ref(false)
+const revoked = ref(false)
+
+// Read the revocation token from localStorage (set by /criar on creation).
+// Only the original creator's browser will have this — it's how we know
+// to show the "Revogar" button.
+try {
+  revocationToken.value = localStorage.getItem(`revoke_token:${props.slug}`) || ''
+} catch {
+  // localStorage unavailable — skip the revoke button
+}
+
+const revoke = async () => {
+  if (!revocationToken.value) return
+  revoking.value = true
+  try {
+    await axios.delete(`${apiHost}/pagamentos/${props.slug}`, {
+      headers: { Authorization: `Bearer ${revocationToken.value}` },
+    })
+    try {
+      localStorage.removeItem(`revoke_token:${props.slug}`)
+    } catch {
+      // ignore
+    }
+    revoked.value = true
+    data.value = null
+  } catch {
+    // If the link was already deleted (e.g., TTL hit), treat as success.
+    revoked.value = true
+    data.value = null
+  } finally {
+    revoking.value = false
+  }
+}
 
 const fetchGif = async () => {
   const apiKey = import.meta.env.VITE_GIPHY_API_KEY

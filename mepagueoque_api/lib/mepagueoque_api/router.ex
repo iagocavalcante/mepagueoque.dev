@@ -131,6 +131,46 @@ defmodule MepagueoqueApi.Router do
     end
   end
 
+  # CORS preflight for DELETE /pagamentos/:slug
+  options "/pagamentos/:_slug" do
+    conn
+    |> put_resp_header("access-control-allow-methods", "GET, POST, DELETE, OPTIONS")
+    |> put_resp_header("access-control-allow-headers", "content-type, authorization")
+    |> send_resp(200, "")
+  end
+
+  # Revoke a payment link. Requires the raw revocation token returned at
+  # creation time, sent as a Bearer authorization header.
+  #
+  # Responses:
+  #   - 204: Link revoked
+  #   - 401: Token missing, mismatched, or link predates the feature
+  #   - 404: Slug not found
+  delete "/pagamentos/:slug" do
+    case extract_bearer_token(conn) do
+      nil ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(401, Jason.encode!(%{error: "missing_token"}))
+
+      token ->
+        case PaymentLinkController.revoke(slug, token) do
+          :ok ->
+            send_resp(conn, 204, "")
+
+          {:error, :not_found} ->
+            conn
+            |> put_resp_content_type("application/json")
+            |> send_resp(404, Jason.encode!(%{error: "not_found"}))
+
+          {:error, :unauthorized} ->
+            conn
+            |> put_resp_content_type("application/json")
+            |> send_resp(401, Jason.encode!(%{error: "invalid_token"}))
+        end
+    end
+  end
+
   # Fallback route for unmatched endpoints.
   # Returns a 404 Not Found response for any route that doesn't match defined endpoints.
   match _ do
@@ -163,6 +203,14 @@ defmodule MepagueoqueApi.Router do
 
   defp parse_body(%Plug.Conn{body_params: params}) when is_map(params), do: {:ok, params}
   defp parse_body(_), do: {:error, "Invalid body format"}
+
+  @spec extract_bearer_token(Plug.Conn.t()) :: String.t() | nil
+  defp extract_bearer_token(conn) do
+    case Plug.Conn.get_req_header(conn, "authorization") do
+      ["Bearer " <> token] -> String.trim(token)
+      _ -> nil
+    end
+  end
 
   @spec handle_payment_reminder(Plug.Conn.t(), map()) :: Plug.Conn.t()
   defp handle_payment_reminder(conn, params) do
