@@ -47,6 +47,10 @@ defmodule MepagueoqueApi.Application do
     port = get_port()
 
     children = [
+      # Start the Ecto Repo first so the database is up before HTTP traffic
+      MepagueoqueApi.Repo,
+      # Periodic sweeper that prunes expired payment_links rows
+      MepagueoqueApi.Workers.ExpirationSweeper,
       # Start the Bandit web server with the HTTP router
       # Bind to 0.0.0.0 to accept connections from Fly.io proxy
       {Bandit, plug: MepagueoqueApi.Router, port: port, scheme: :http, ip: {0, 0, 0, 0}}

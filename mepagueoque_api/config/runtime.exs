@@ -54,3 +54,14 @@ end
 
 # Configure JSON encoder
 config :plug, :json_library, Jason
+
+# Production database configuration (SQLite3)
+if config_env() == :prod do
+  config :mepagueoque_api, MepagueoqueApi.Repo,
+    database: System.get_env("DATABASE_PATH") || "/data/mepagueoque.db",
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5"),
+    journal_mode: :wal,
+    cache_size: -64_000,
+    temp_store: :memory,
+    synchronous: :normal
+end

@@ -9,6 +9,11 @@ primary_region = 'gru'  # São Paulo, Brazil (closest to your users)
 [env]
   PORT = '8080'
   MIX_ENV = 'prod'
+  DATABASE_PATH = '/data/mepagueoque.db'
+
+[[mounts]]
+  source = "mepagueoque_data"
+  destination = "/data"
 
 [http_service]
   internal_port = 8080

@@ -1,33 +1,22 @@
 <template>
   <v-app>
-    <!-- Main hero section with gradient background -->
     <v-main class="hero-section">
-      <Index />
+      <router-view />
     </v-main>
-
-    <!-- Content section -->
     <v-main class="content-section">
       <Content />
     </v-main>
-
-    <!-- Footer -->
     <Footer />
   </v-app>
 </template>
 
 <script>
-import Index from './components/Index.vue'
 import Content from './components/Content.vue'
 import Footer from './components/Footer.vue'
 
 export default {
   name: 'App',
-
-  components: {
-    Index,
-    Content,
-    Footer
-  },
+  components: { Content, Footer },
 }
 </script>
 

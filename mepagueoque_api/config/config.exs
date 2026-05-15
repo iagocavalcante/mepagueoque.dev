@@ -1,5 +1,9 @@
 import Config
 
+# Configure Ecto repositories
+config :mepagueoque_api,
+  ecto_repos: [MepagueoqueApi.Repo]
+
 # Configure JSON encoder
 config :plug, :json_library, Jason
 
