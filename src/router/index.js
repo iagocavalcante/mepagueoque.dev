@@ -14,6 +14,16 @@ const routes = [
     component: () => import('@/components/PaymentPage.vue'),
     props: true,
   },
+  {
+    path: '/politica-de-privacidade',
+    name: 'privacy',
+    component: () => import('@/components/PrivacyPolicyPage.vue'),
+  },
+  {
+    path: '/termos',
+    name: 'terms',
+    component: () => import('@/components/TermsPage.vue'),
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 

@@ -56,12 +56,17 @@
           </div>
         </v-col>
 
-        <!-- Disclaimer -->
+        <!-- Disclaimer + legal links -->
         <v-col cols="12" class="mt-4">
           <v-divider class="mb-4" />
           <p class="disclaimer text-center">
             Este site é uma ferramenta humorística para cobrar dívidas de forma sutil.
             Use com responsabilidade e bom senso.
+          </p>
+          <p class="legal-links text-center mt-3">
+            <router-link :to="{ name: 'privacy' }">Política de Privacidade</router-link>
+            <span class="separator">·</span>
+            <router-link :to="{ name: 'terms' }">Termos de Uso</router-link>
           </p>
         </v-col>
       </v-row>
@@ -170,6 +175,26 @@ export default {
   line-height: $line-height-relaxed;
   max-width: 800px;
   margin: 0 auto;
+}
+
+.legal-links {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+
+  a {
+    color: $color-text-secondary;
+    text-decoration: none;
+
+    &:hover {
+      color: $color-success-main;
+      text-decoration: underline;
+    }
+  }
+
+  .separator {
+    margin: 0 $spacing-2;
+    color: $color-text-disabled;
+  }
 }
 
 // Accessibility improvements
