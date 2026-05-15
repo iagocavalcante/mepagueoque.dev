@@ -9,6 +9,7 @@ defmodule MepagueoqueApi.Router do
   use Plug.Router
   use Plug.ErrorHandler
 
+  alias MepagueoqueApi.Controllers.PaymentLinkController
   alias MepagueoqueApi.Controllers.PaymentReminderController
 
   require Logger
@@ -19,6 +20,7 @@ defmodule MepagueoqueApi.Router do
     headers: ["content-type", "authorization"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
   )
+
   plug(Plug.Logger)
   plug(:match)
   plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
@@ -73,6 +75,59 @@ defmodule MepagueoqueApi.Router do
         conn
         |> put_resp_content_type("application/json")
         |> send_resp(400, Jason.encode!(%{error: "Invalid request body", details: reason}))
+    end
+  end
+
+  # Handle OPTIONS preflight request for CORS on the payment links endpoint.
+  options "/pagamentos" do
+    send_resp(conn, 200, "")
+  end
+
+  # Create a PIX payment link.
+  #
+  # Request Body:
+  #   - pix_key: PIX key (email, CPF, CNPJ, phone, or random key)
+  #   - beneficiary_name: Beneficiary name (up to 25 chars)
+  #   - city: Beneficiary city (up to 15 chars)
+  #   - description: Description shown to the payer
+  #   - amount_cents: Amount in cents
+  #   - slug: Optional desired slug (auto-generated otherwise)
+  #   - token: Cloudflare Turnstile verification token
+  #
+  # Responses:
+  #   - 200: Link created (returns slug, br_code, expires_at, url)
+  #   - 400: Invalid request parameters
+  #   - 401: Token verification failed
+  #   - 409: Slug already taken
+  #   - 500: Internal server error
+  post "/pagamentos" do
+    case parse_body(conn) do
+      {:ok, params} ->
+        handle_create_payment(conn, params)
+
+      {:error, reason} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(400, Jason.encode!(%{error: reason}))
+    end
+  end
+
+  # Fetch a PIX payment link by slug.
+  #
+  # Responses:
+  #   - 200: Returns slug, beneficiary_name, description, amount_cents, br_code, expires_at
+  #   - 404: Slug not found or link expired
+  get "/pagamentos/:slug" do
+    case PaymentLinkController.show(slug) do
+      {:ok, payload} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(200, Jason.encode!(payload))
+
+      {:error, :not_found} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(404, Jason.encode!(%{error: "not_found"}))
     end
   end
 
@@ -132,6 +187,38 @@ defmodule MepagueoqueApi.Router do
         conn
         |> put_resp_content_type("application/json")
         |> send_resp(500, Jason.encode!(%{error: "Erro ao processar cobrança", details: reason}))
+    end
+  end
+
+  @spec handle_create_payment(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  defp handle_create_payment(conn, params) do
+    case PaymentLinkController.create(conn, params) do
+      {:ok, payload} ->
+        body = Map.put(payload, :url, "https://mepagueoque.dev/p/#{payload.slug}")
+
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(200, Jason.encode!(body))
+
+      {:error, :invalid_params, errors} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(400, Jason.encode!(%{error: "invalid_params", details: errors}))
+
+      {:error, :slug_taken} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(409, Jason.encode!(%{error: "slug_taken"}))
+
+      {:error, :turnstile_verification_failed, reason} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(401, Jason.encode!(%{error: "turnstile_failed", details: reason}))
+
+      {:error, _type, reason} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(500, Jason.encode!(%{error: "internal_error", details: reason}))
     end
   end
 end
