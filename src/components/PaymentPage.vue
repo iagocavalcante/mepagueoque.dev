@@ -12,6 +12,14 @@
       <p class="text-subtitle-1 mb-2">para <strong>{{ data.beneficiary_name }}</strong></p>
       <p class="text-body-2 mb-6">{{ data.description }}</p>
 
+      <img
+        v-if="gifUrl"
+        :src="gifUrl"
+        :alt="gifTitle"
+        class="d-block mx-auto mb-6 rounded"
+        style="max-width: 280px; max-height: 200px;"
+      />
+
       <canvas ref="qrCanvas" class="d-block mx-auto mb-6" />
 
       <v-textarea
@@ -48,6 +56,23 @@ const notFound = ref(false)
 const data = ref(null)
 const copied = ref(false)
 const qrCanvas = ref(null)
+const gifUrl = ref('')
+const gifTitle = ref('')
+
+const fetchGif = async () => {
+  const apiKey = import.meta.env.VITE_GIPHY_API_KEY
+  const giphyUrl = import.meta.env.VITE_GIPHY_URL
+  if (!apiKey || !giphyUrl) return
+  try {
+    const res = await axios.get(`${giphyUrl}/random`, {
+      params: { api_key: apiKey, tag: 'money', rating: 'g' },
+    })
+    gifUrl.value = res.data?.data?.images?.fixed_height?.url || ''
+    gifTitle.value = res.data?.data?.title || ''
+  } catch {
+    // GIF is decoration — silent failure is fine
+  }
+}
 
 // Draw the QR once both data and the canvas element exist. The canvas
 // only mounts after loading flips to false, so we can't await its presence
@@ -62,6 +87,7 @@ onMounted(async () => {
   try {
     const res = await axios.get(`${apiHost}/pagamentos/${props.slug}`)
     data.value = res.data
+    fetchGif()
   } catch (e) {
     notFound.value = true
   } finally {
