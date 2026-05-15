@@ -1,0 +1,14 @@
+[build]
+  publish = "dist"
+  command = "yarn build"
+
+# Edge functions for social-media link unfurling on /p/:slug.
+# These run BEFORE the SPA fallback in public/_redirects.
+
+[[edge_functions]]
+  function = "og-tags"
+  path = "/p/:slug"
+
+[[edge_functions]]
+  function = "qr-png"
+  path = "/p/:slug/qr.png"
