@@ -1,5 +1,9 @@
 <template>
   <v-container class="py-12" max-width="500">
+    <router-link :to="{ name: 'home' }" class="back-link text-body-2 d-inline-block mb-4">
+      ← Início
+    </router-link>
+
     <v-progress-circular v-if="loading" indeterminate class="d-block mx-auto my-8" />
 
     <div v-else-if="notFound" class="text-center">
@@ -49,9 +53,23 @@
         Revogar este link
       </v-btn>
 
-      <p class="text-caption text-center mt-6">
+      <p class="text-caption text-center mt-6 mb-8">
         Expira em {{ formatDate(data.expires_at) }}
       </p>
+
+      <v-card variant="tonal" class="text-center pa-4 mt-8">
+        <p class="text-body-2 mb-3">
+          Também precisa cobrar alguém? 💸
+        </p>
+        <v-btn
+          :to="{ name: 'create-payment' }"
+          color="primary"
+          variant="flat"
+          size="small"
+        >
+          Crie sua cobrança aqui
+        </v-btn>
+      </v-card>
     </div>
 
     <div v-else-if="revoked" class="text-center">
@@ -170,3 +188,14 @@ const formatBRL = (cents) =>
 const formatDate = (iso) =>
   new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 </script>
+
+<style scoped>
+.back-link {
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+}
+.back-link:hover {
+  color: rgba(0, 0, 0, 0.87);
+  text-decoration: underline;
+}
+</style>

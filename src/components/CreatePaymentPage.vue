@@ -1,5 +1,9 @@
 <template>
   <v-container class="py-12" max-width="600">
+    <router-link :to="{ name: 'home' }" class="back-link text-body-2 d-inline-block mb-4">
+      ← Início
+    </router-link>
+
     <h1 class="text-h4 mb-6">Criar link de cobrança PIX</h1>
 
     <v-form @submit.prevent="submit" :disabled="loading">
@@ -155,3 +159,14 @@ const submit = async () => {
 
 defineExpose({ turnstileToken, privacyAccepted })
 </script>
+
+<style scoped>
+.back-link {
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+}
+.back-link:hover {
+  color: rgba(0, 0, 0, 0.87);
+  text-decoration: underline;
+}
+</style>

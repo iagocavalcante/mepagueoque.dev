@@ -23,6 +23,7 @@ const buildRouter = () =>
   createRouter({
     history: createWebHistory(),
     routes: [
+      { path: '/', name: 'home', component: { template: '<div>h</div>' } },
       { path: '/p/:slug', name: 'payment', component: { template: '<div>p</div>' } },
       { path: '/politica-de-privacidade', name: 'privacy', component: { template: '<div>p</div>' } },
       { path: '/termos', name: 'terms', component: { template: '<div>t</div>' } },

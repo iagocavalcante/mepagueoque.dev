@@ -1,6 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createVuetify } from 'vuetify'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import axios from 'axios'
@@ -10,6 +11,14 @@ vi.mock('axios')
 vi.mock('qrcode', () => ({ default: { toCanvas: vi.fn() } }))
 
 const buildVuetify = () => createVuetify({ components, directives })
+const buildRouter = () =>
+  createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', name: 'home', component: { template: '<div>h</div>' } },
+      { path: '/criar', name: 'create-payment', component: { template: '<div>c</div>' } },
+    ],
+  })
 
 describe('PaymentPage', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -28,7 +37,7 @@ describe('PaymentPage', () => {
 
     const wrapper = mount(PaymentPage, {
       props: { slug: 'volei' },
-      global: { plugins: [buildVuetify()] },
+      global: { plugins: [buildVuetify(), buildRouter()] },
     })
 
     await flushPromises()
@@ -45,7 +54,7 @@ describe('PaymentPage', () => {
 
     const wrapper = mount(PaymentPage, {
       props: { slug: 'gone' },
-      global: { plugins: [buildVuetify()] },
+      global: { plugins: [buildVuetify(), buildRouter()] },
     })
 
     await flushPromises()
