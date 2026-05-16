@@ -189,11 +189,39 @@
                 />
               </div>
 
+              <!-- Inline error feedback -->
+              <v-alert
+                v-if="errorMessage"
+                type="error"
+                variant="tonal"
+                density="compact"
+                closable
+                class="mb-4"
+                role="alert"
+                data-testid="form-error"
+                @click:close="errorMessage = ''"
+              >
+                {{ errorMessage }}
+              </v-alert>
+
+              <!-- Captcha loading hint -->
+              <p
+                v-if="!turnstileToken && !loading"
+                class="text-caption text-medium-emphasis text-center mb-2"
+                aria-live="polite"
+              >
+                <v-icon
+                  size="small"
+                  icon="mdi-shield-refresh"
+                />
+                Verificando segurança…
+              </p>
+
               <!-- Submit Button -->
               <v-btn
                 type="submit"
                 :loading="loading"
-                :disabled="!isValid || loading"
+                :disabled="loading"
                 color="success"
                 size="x-large"
                 block
@@ -280,11 +308,27 @@ export default {
     const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
 
     const message = ref({
-      text: 'Nossa dívida está completando 1 mês! Você está convidado a pagar.',
-      value: '100.00',
+      text: '',
+      value: '',
       token: '',
       destination: ''
     })
+
+    const errorMessage = ref('')
+
+    const resetTurnstile = () => {
+      turnstileToken.value = ''
+      if (turnstileWidget.value?.reset) {
+        turnstileWidget.value.reset()
+      }
+    }
+
+    const clearForm = () => {
+      message.value.text = ''
+      message.value.value = ''
+      message.value.destination = ''
+      formRef.value?.resetValidation?.()
+    }
 
     // Watch for shipment type changes and clear destination
     watch(selectedShipmentType, () => {
@@ -316,6 +360,7 @@ export default {
     const sendEmail = async (token) => {
       message.value.token = token
       loading.value = true
+      errorMessage.value = ''
 
       try {
         const result = await axios.post(
@@ -323,7 +368,6 @@ export default {
           message.value
         )
 
-        // Handle response - can be a string or object
         if (typeof result.data === 'string') {
           responseMessage.value = result.data
         } else if (result.data?.message) {
@@ -333,46 +377,36 @@ export default {
         }
 
         dialog.value = true
-
-        // Clear token after successful send to prevent reuse
-        turnstileToken.value = ''
+        clearForm()
       } catch (error) {
         console.error('Email send error:', error)
 
-        // Better error message handling with token-specific messages
         if (error.response?.status === 401) {
-          // Turnstile verification failed
           const details = error.response?.data?.details || ''
-          if (details.includes('expired') || details.includes('invalid')) {
-            responseMessage.value = 'Verificação de segurança expirou. Por favor, tente novamente.'
-          } else {
-            responseMessage.value = `Verificação falhou: ${details}`
-          }
-          // Clear expired/invalid token so user gets a fresh one
-          turnstileToken.value = ''
+          errorMessage.value = details.includes('expired') || details.includes('invalid')
+            ? 'Verificação de segurança expirou. Tente novamente.'
+            : `Verificação falhou: ${details}`
         } else if (error.response?.data?.message) {
-          responseMessage.value = error.response.data.message
+          errorMessage.value = error.response.data.message
         } else if (error.response?.data?.error) {
-          responseMessage.value = error.response.data.error
-        } else if (error.response?.data) {
-          responseMessage.value = typeof error.response.data === 'string'
-            ? error.response.data
-            : 'Erro ao enviar email. Tente novamente.'
+          errorMessage.value = error.response.data.error
+        } else if (typeof error.response?.data === 'string') {
+          errorMessage.value = error.response.data
         } else if (error.message) {
-          responseMessage.value = `Erro: ${error.message}`
+          errorMessage.value = `Erro: ${error.message}`
         } else {
-          responseMessage.value = 'Erro ao enviar email. Verifique sua conexão e tente novamente.'
+          errorMessage.value = 'Erro ao enviar email. Verifique sua conexão e tente novamente.'
         }
-
-        dialog.value = true
       } finally {
         loading.value = false
+        resetTurnstile()
       }
     }
 
     const sendWhatsapp = async (token) => {
       message.value.token = token
       loading.value = true
+      errorMessage.value = ''
 
       try {
         const fetchGif = await axios.get(
@@ -386,72 +420,62 @@ export default {
           }
         )
 
-        // Build WhatsApp message with phone number if provided
         const gifUrl = fetchGif.data?.data?.url || ''
         const gifTitle = fetchGif.data?.data?.title || ''
         const content = `${message.value.text}\n\nValor: R$ ${message.value.value}\n\n${gifTitle}\n${gifUrl}`
 
-        // If destination (phone) is provided, use it; otherwise use broadcast
         const phoneNumber = message.value.destination ? message.value.destination.replace(/\D/g, '') : ''
         const target = phoneNumber
           ? `https://wa.me/${phoneNumber}?text=${encodeURIComponent(content)}`
           : `https://wa.me/?text=${encodeURIComponent(content)}`
 
+        const recipient = message.value.destination
         window.open(target, '_blank')
 
         responseMessage.value = phoneNumber
-          ? `Mensagem enviada para WhatsApp! 💬\nAbrindo conversa com ${message.value.destination}`
+          ? `Mensagem enviada para WhatsApp! 💬\nAbrindo conversa com ${recipient}`
           : 'Mensagem preparada para WhatsApp! 💬\nSelecione o contato para enviar.'
 
         dialog.value = true
-
-        // Clear token after successful send to prevent reuse
-        turnstileToken.value = ''
+        clearForm()
       } catch (error) {
         console.error('WhatsApp send error:', error)
 
         if (error.response?.status === 404) {
-          responseMessage.value = 'Não foi possível encontrar um GIF. Tente novamente.'
+          errorMessage.value = 'Não foi possível encontrar um GIF. Tente novamente.'
         } else if (error.message) {
-          responseMessage.value = `Erro ao preparar mensagem: ${error.message}`
+          errorMessage.value = `Erro ao preparar mensagem: ${error.message}`
         } else {
-          responseMessage.value = 'Erro ao preparar mensagem para WhatsApp. Tente novamente.'
+          errorMessage.value = 'Erro ao preparar mensagem para WhatsApp. Tente novamente.'
         }
-
-        // Clear token on error so user gets a fresh one
-        turnstileToken.value = ''
-        dialog.value = true
       } finally {
         loading.value = false
+        resetTurnstile()
       }
     }
 
     const handleRecaptcha = async () => {
-      // Prevent multiple submissions
       if (loading.value) {
         return
       }
 
-      // Validate form
+      errorMessage.value = ''
+
       const { valid } = await formRef.value.validate()
-
       if (!valid) {
+        errorMessage.value = 'Confira os campos destacados acima.'
         return
       }
 
-      // Check if Turnstile token is available
       if (!turnstileToken.value) {
-        responseMessage.value = 'Por favor, complete a verificação de segurança.'
-        dialog.value = true
+        errorMessage.value = 'Aguarde a verificação de segurança terminar e tente de novo.'
         return
       }
 
-      // Consume the token immediately to prevent reuse on multiple clicks
       const tokenToUse = turnstileToken.value
       turnstileToken.value = ''
 
       try {
-        // Send based on selected type
         if (selectedShipmentType.value === 'email') {
           await sendEmail(tokenToUse)
         } else if (selectedShipmentType.value === 'whatsapp') {
@@ -459,32 +483,15 @@ export default {
         }
       } catch (error) {
         console.error('Submission error:', error)
-        responseMessage.value = 'Erro ao processar sua solicitação. Tente novamente.'
-        dialog.value = true
+        errorMessage.value = 'Erro ao processar sua solicitação. Tente novamente.'
         loading.value = false
+        resetTurnstile()
       }
     }
 
     const closeDialog = () => {
       dialog.value = false
       responseMessage.value = ''
-
-      // Only reset if token was already cleared (meaning it was used)
-      // Don't reset if token is still present (widget is still working)
-      if (!turnstileToken.value && turnstileWidget.value?.reset) {
-        // Use setTimeout to avoid race conditions with widget lifecycle
-        setTimeout(() => {
-          if (turnstileWidget.value?.reset) {
-            turnstileWidget.value.reset()
-          }
-        }, 100)
-      }
-
-      // Optional: Reset form to defaults after successful send
-      // Uncomment if you want to clear the form after each submission
-      // message.value.text = 'Nossa dívida está completando 1 mês! Você está convidado a pagar.'
-      // message.value.value = '100.00'
-      // message.value.destination = ''
     }
 
     // Turnstile event handlers
@@ -494,21 +501,16 @@ export default {
 
     const onTurnstileError = (errorCode) => {
       console.error('Turnstile error:', errorCode)
-      responseMessage.value = 'Erro na verificação de segurança. Recarregue a página.'
-      dialog.value = true
+      errorMessage.value = 'Erro na verificação de segurança. Recarregue a página.'
     }
 
     const onTurnstileExpired = () => {
-      console.log('Turnstile token expired - widget will auto-renew')
       turnstileToken.value = ''
-      // Note: Don't manually reset here - the widget handles auto-renewal
-      // Manually resetting can cause conflicts with widget's internal retry logic
     }
 
     const onTurnstileUnsupported = () => {
       console.error('Turnstile not supported')
-      responseMessage.value = 'Seu navegador não suporta a verificação de segurança.'
-      dialog.value = true
+      errorMessage.value = 'Seu navegador não suporta a verificação de segurança.'
     }
 
     return {
@@ -519,6 +521,7 @@ export default {
       loading,
       dialog,
       responseMessage,
+      errorMessage,
       selectedShipmentType,
       message,
       moneyTransfer,

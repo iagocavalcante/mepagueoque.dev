@@ -2,6 +2,7 @@
 node_modules
 /dist
 .worktrees/
+mepagueoque_api/.fly-backup/
 
 # local env files
 .env.local
